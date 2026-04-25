@@ -1,7 +1,7 @@
 """
 deceptron/solvers.py
 --------------------
-D-IPG and baseline solvers — exact from Heat1D.py.
+D-IPG and baseline solvers
 
 All solvers:
   - are device-agnostic (move tensors as needed)
