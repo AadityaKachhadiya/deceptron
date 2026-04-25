@@ -152,13 +152,15 @@ def train_forward(
                                           config.jcp_num_probes_eval,
                                           config.eval_subset_rjcp)
 
+        val_task = _eval_forward_val(model, val_loader, device)
+
         if val_task < best_val:
             best_val   = val_task
             best_state = _state_copy(model)
 
         if verbose and ((epoch + 1) % 20 == 0 or epoch == 0):
             print(f"  [S1] epoch {epoch+1:03d} | "
-                  f"train={tr_tot/count:.5f} | val={val_task:.5f} | rjcp={val_rjcp:.5f}")
+                  f"train={tr_tot/count:.5f} | val={val_task:.5f}")
 
     model.load_state_dict(best_state)
     return model
