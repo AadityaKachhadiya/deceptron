@@ -1,27 +1,26 @@
 """
-deceptron/models.py
--------------------
-Two model classes, exactly matching the paper implementations.
+Model definitions for Deceptron experiments.
 
-DeceptronMLP   — for flat/vector inputs (Heat-1D, Allen-Cahn, Darcy, etc.)
-DeceptronCNN3D — for 3-D volumetric inputs (Heat-3D, Navier-Stokes)
+The models in this module expose a common interface:
 
-Both expose the same interface:
-    model.f(x)  — forward surrogate  f_W : R^d -> R^d
-    model.g(y)  — local inverse       g_V : R^d -> R^d
+    model.f(x)
+        Forward surrogate map.
+    model.g(y)
+        Learned local inverse map.
+
+Both maps operate on tensors with matching input and output dimensions. The
+MLP model is intended for flat vector inputs, while the 3-D CNN model accepts
+flat vectors externally and reshapes them internally to volumetric grids.
 """
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-# ─────────────────────────────────────────────────────────────
-# MLP  (Heat-1D, Allen-Cahn, Advection-Diffusion, Darcy, NS)
-# ─────────────────────────────────────────────────────────────
+# MLP 
 
 class _ForwardMap(nn.Module):
-    """Single linear layer + LeakyReLU  (exact from paper)."""
+    """Single linear layer + LeakyReLU."""
     def __init__(self, dim: int, negative_slope: float):
         super().__init__()
         self.linear = nn.Linear(dim, dim, bias=True)
@@ -34,7 +33,7 @@ class _ForwardMap(nn.Module):
 
 
 class _ReverseMap(nn.Module):
-    """Two-layer MLP  dim -> hidden -> dim  (exact from paper)."""
+    """Two-layer MLP block mapping dim -> hidden -> dim."""
     def __init__(self, dim: int, hidden_multiplier: int, negative_slope: float):
         super().__init__()
         hidden = hidden_multiplier * dim
@@ -53,20 +52,22 @@ class _ReverseMap(nn.Module):
 
 
 class DeceptronMLP(nn.Module):
-    """
-    Deceptron for flat / vector inverse problems.
+"""
+Deceptron model for flat vector inverse problems.
 
-    Architecture mirrors ForwardMap + ReverseMap from Heat1D.py exactly.
+The forward map and reverse map are represented by separate MLPs. Both maps
+take tensors of shape ``(..., dim)`` and return tensors with the same trailing
+dimension.
 
-    Parameters
-    ----------
-    dim : int
-        Input = output dimension.
-    negative_slope : float
-        LeakyReLU slope for both maps.  Default 0.10.
-    hidden_multiplier : int
-        Width of reverse map = hidden_multiplier * dim.  Default 2.
-    """
+Parameters
+----------
+dim : int
+    Input and output dimension.
+negative_slope : float, default=0.10
+    LeakyReLU slope used in both maps.
+hidden_multiplier : int, default=2
+    Width multiplier for the reverse map.
+"""
     def __init__(self, dim: int, negative_slope: float = 0.10,
                  hidden_multiplier: int = 2):
         super().__init__()
@@ -85,10 +86,7 @@ class DeceptronMLP(nn.Module):
         return self.f(x)
 
 
-# ─────────────────────────────────────────────────────────────
-# CNN  (Heat-3D, Navier-Stokes spatial)
-# ─────────────────────────────────────────────────────────────
-
+# CNN 
 class _ConvResidualBlock3D(nn.Module):
     """Exact ConvResidualBlock3D from Heat3D.py."""
     def __init__(self, channels: int, negative_slope: float):
@@ -145,21 +143,22 @@ class _ReverseCNN3D(nn.Module):
 
 
 class DeceptronCNN3D(nn.Module):
-    """
-    Deceptron for 3-D spatial inverse problems.
+"""
+Deceptron model for 3-D volumetric inverse problems.
 
-    Architecture mirrors DeceptronCNN3DModel from Heat3D.py exactly.
-    Inputs are expected as flat tensors (B, nx*ny*nz).
+Inputs are provided as flat tensors of shape ``(batch, nx * ny * nz)``. The
+model reshapes them internally to 3-D volumes, applies convolutional forward
+and reverse maps, and returns flat tensors with the original dimension.
 
-    Parameters
-    ----------
-    nx, ny, nz : int
-        Spatial grid dimensions.
-    hidden_channels : int
-        Channels in residual blocks.  Default 12.
-    negative_slope : float
-        LeakyReLU slope.  Default 0.10.
-    """
+Parameters
+----------
+nx, ny, nz : int
+    Spatial grid dimensions.
+hidden_channels : int, default=12
+    Number of channels used in the convolutional residual blocks.
+negative_slope : float, default=0.10
+    LeakyReLU slope used in the convolutional blocks.
+"""
     def __init__(self, nx: int, ny: int, nz: int,
                  hidden_channels: int = 12, negative_slope: float = 0.10):
         super().__init__()
