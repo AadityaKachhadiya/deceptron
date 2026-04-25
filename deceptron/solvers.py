@@ -1,15 +1,14 @@
 """
-deceptron/solvers.py
---------------------
-D-IPG and baseline solvers
+Optimization routines for Deceptron inverse problems.
 
-All solvers:
-  - are device-agnostic (move tensors as needed)
-  - accept flat 1D x0 and y_star tensors
-  - return a dict with consistent keys
+This module provides D-IPG together with first- and second-order baseline
+solvers. D-IPG uses both the forward surrogate ``f`` and the learned local
+inverse ``g``. The baseline solvers use only the forward map, which keeps the
+comparison focused on the contribution of the learned inverse.
 
-D-IPG uses both f and g.  GD/GN/LM use only f.
-This is intentional and isolates the effect of the learned inverse.
+The solvers operate on single flat input and observation tensors and return
+standardized dictionaries containing the recovered estimate, iteration count,
+success flag, residual, timing, and method-specific diagnostics.
 """
 
 import time
@@ -20,15 +19,17 @@ import torch
 import torch.nn as nn
 
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# Config 
 
 @dataclass
 class SolverConfig:
-    """
-    Solver hyperparameters.  Defaults match Heat-1D paper values.
+"""
+Hyperparameters shared by the inverse-problem solvers.
 
-    For Heat-3D: set tolerance_eps=0.38.
-    """
+Parameters control the iteration budget, stopping tolerance, Armijo
+backtracking, domain projection, and method-specific step sizes or damping.
+The defaults are conservative values intended for the included examples.
+"""
     max_iterations: int        = 120
     tolerance_eps: float       = 0.30    # Heat-3D uses 0.38
     armijo_c: float            = 1e-4
@@ -44,17 +45,19 @@ class SolverConfig:
     num_probes_eval: int       = 2       # for RJCP at final iterate
 
 
-# ── Shared math helpers (private) ─────────────────────────────────────────────
+# Shared math helpers
 
 def _clamp(x: torch.Tensor, lo: float, hi: float) -> torch.Tensor:
     return torch.clamp(x, lo, hi)
 
 
 def _phi_grad(f, x: torch.Tensor, y_star: torch.Tensor):
-    """
-    Exact phi_grad from Heat1D.py.
-    Returns (phi, gradient, residual) all detached.
-    """
+"""
+Evaluate the least-squares objective, gradient, and residual.
+
+The objective is ``0.5 * mean((f(x) - y)^2)``. Returned tensors are detached
+from the computation graph.
+"""
     xr = x.detach().clone().requires_grad_(True)
     r  = f(xr) - y_star
     ph = 0.5 * torch.mean(r * r)
@@ -68,10 +71,13 @@ def _phi_value(f, x: torch.Tensor, y_star: torch.Tensor) -> torch.Tensor:
 
 
 def _armijo_accept(f, x_t, p, y_star, rho, c, lo, hi):
-    """
-    Exact armijo_accept from Heat1D.py.
-    p must be same shape as x_t.
-    """
+"""
+Evaluate one projected Armijo backtracking candidate.
+
+The proposed direction ``p`` must have the same shape as ``x``. The returned
+candidate is projected to the configured box constraints before evaluating
+the sufficient-decrease condition.
+"""
     phi_t, grad_t, _ = _phi_grad(f, x_t, y_star)
     x_trial   = _clamp((1.0 - rho) * x_t + rho * (x_t + p), lo, hi)
     phi_trial = _phi_value(f, x_trial, y_star)
@@ -86,10 +92,12 @@ def _normalized_residual(f, x: torch.Tensor, y_star: torch.Tensor) -> float:
 
 
 def _full_jacobian(f, x: torch.Tensor) -> torch.Tensor:
-    """
-    Exact full_jacobian_single_output_model from Heat1D.py.
-    Uses vectorize=True for speed.
-    """
+"""
+Compute the Jacobian of a single-sample forward map.
+
+The function is intended for moderate-dimensional problems where forming the
+full Jacobian is practical.
+"""
     xr = x.detach().clone().requires_grad_(True)
     def f_single(inp): return f(inp.unsqueeze(0)).squeeze(0)
     J = torch.autograd.functional.jacobian(f_single, xr, vectorize=True)
@@ -97,10 +105,12 @@ def _full_jacobian(f, x: torch.Tensor) -> torch.Tensor:
 
 
 def _solve_linear(A: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-    """
-    Exact solve_linear_system from Heat1D.py.
-    Always returns a 1D vector.
-    """
+"""
+Solve a dense linear system and return a one-dimensional solution tensor.
+
+A least-squares fallback is used when the direct solve is ill-conditioned or
+fails.
+"""
     b = b.flatten()
     try:
         return torch.linalg.solve(A, b).flatten()
@@ -108,7 +118,7 @@ def _solve_linear(A: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
         return torch.linalg.lstsq(A, b.unsqueeze(-1)).solution.squeeze(-1).flatten()
 
 
-# ── D-IPG ─────────────────────────────────────────────────────────────────────
+# D-IPG
 
 def solve_dipg(
     model,
@@ -116,25 +126,30 @@ def solve_dipg(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-    """
-    D-IPG solver — exact from Heat1D.py.
+"""
+Solve an inverse problem using D-IPG.
 
-    Uses both f and g.  GD/GN/LM use only f.
+D-IPG forms proposal steps by applying the learned local inverse to residual
+updates in observation space, followed by projected Armijo backtracking in
+input space.
 
-    Parameters
-    ----------
-    model : DeceptronMLP or DeceptronCNN3D  (must be trained)
-    y_star : Tensor (d,)   normalised target observation
-    x0 : Tensor (d,)       initial guess (zeros works fine for Heat-1D)
-    config : SolverConfig
+Parameters
+----------
+model : torch.nn.Module
+    Trained module exposing ``model.f`` and ``model.g``.
+y_star : torch.Tensor
+    Target observation as a single flat tensor.
+x0 : torch.Tensor
+    Initial input estimate as a single flat tensor.
+config : SolverConfig
+    Solver hyperparameters.
 
-    Returns
-    -------
-    dict with keys: x_hat, iters, success, final_residual,
-                    accepted_frac, time_sec, final_rjcp,
-                    mean_residual_drop_per_accept, mean_alpha_accept,
-                    mean_step_norm_accept, mean_cosine_with_neg_grad
-    """
+Returns
+-------
+dict
+    Dictionary containing the recovered estimate, iteration count, success
+    flag, final residual, wall-clock time, and D-IPG diagnostics.
+"""
     if config is None:
         config = SolverConfig()
 
@@ -221,7 +236,7 @@ def solve_dipg(
     }
 
 
-# ── Gradient Descent ──────────────────────────────────────────────────────────
+# Gradient Descent
 
 def solve_gradient_descent(
     f,
@@ -229,7 +244,12 @@ def solve_gradient_descent(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-    """GD with Armijo backtracking — exact from Heat1D.py.  Uses only f."""
+"""
+Solve an inverse problem with projected gradient descent.
+
+The method uses only the forward map ``f`` and applies Armijo backtracking to
+the negative gradient direction.
+"""
     if config is None:
         config = SolverConfig()
 
@@ -269,7 +289,7 @@ def solve_gradient_descent(
     }
 
 
-# ── Gauss-Newton ──────────────────────────────────────────────────────────────
+# Gauss-Newton
 
 def solve_gauss_newton(
     f,
@@ -277,7 +297,13 @@ def solve_gauss_newton(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-    """GN with Armijo backtracking — exact from Heat1D.py.  Uses only f."""
+"""
+Solve an inverse problem with projected Gauss--Newton iterations.
+
+The method uses only the forward map ``f``. It forms the local least-squares
+linearization explicitly and applies Armijo backtracking to the resulting
+step.
+"""
     if config is None:
         config = SolverConfig()
 
@@ -322,7 +348,7 @@ def solve_gauss_newton(
     }
 
 
-# ── Levenberg-Marquardt ───────────────────────────────────────────────────────
+# Levenberg-Marquardt
 
 def solve_levenberg_marquardt(
     f,
@@ -330,7 +356,13 @@ def solve_levenberg_marquardt(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-    """LM with Armijo backtracking — exact from Heat1D.py.  Uses only f."""
+"""
+Solve an inverse problem with projected Levenberg--Marquardt iterations.
+
+The method uses only the forward map ``f``. The Gauss--Newton normal equations
+are damped by the configured Levenberg--Marquardt parameter before applying
+projected Armijo backtracking.
+"""
     if config is None:
         config = SolverConfig()
 
