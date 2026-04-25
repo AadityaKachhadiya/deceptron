@@ -1,11 +1,14 @@
 """
-deceptron/jcp.py
-----------------
-Jacobian Composition Penalty (JCP) — exact from the paper.
+Jacobian-composition utilities.
 
-single_sample_probe_jcp  : per-sample RJCP estimate
-batch_probe_jcp          : mean over a mini-batch (training loss term)
-estimate_rjcp_dataset    : no-grad dataset diagnostic
+This module implements the Jacobian Composition Penalty (JCP) and the
+corresponding runtime diagnostic (RJCP). For a forward map f and reverse map
+g, the diagnostic estimates
+
+    E_xi || J_g(f(x)) J_f(x) xi - xi ||^2,
+
+using random Rademacher probes. Lower values indicate that g acts locally as
+a better inverse of f around the sampled inputs.
 """
 
 import torch
@@ -18,24 +21,29 @@ def single_sample_probe_jcp(
     num_probes: int = 2,
 ) -> torch.Tensor:
     """
-    Estimate  E_xi[ ||J_g(f(x)) J_f(x) xi - xi||^2 ]  via Rademacher probes.
+    Estimate the Jacobian-composition error for one input sample.
 
-    Exact implementation from both Heat1D.py and Heat3D.py.
+    The model must provide two methods, ``f`` and ``g``. The estimate is
+
+        E_xi || J_g(f(x)) J_f(x) xi - xi ||^2,
+
+    where the expectation is approximated with ``num_probes`` Rademacher
+    probes. The input ``x`` is expected to represent one sample without a
+    batch dimension.
 
     Parameters
     ----------
-    model : DeceptronMLP or DeceptronCNN3D
-        Must have .f() and .g() accepting a single-sample (1D) tensor
-        when wrapped with unsqueeze/squeeze.
-    x : Tensor, shape (d,)
-        Single input sample — NO batch dimension.
-    num_probes : int
-        Number of Hutchinson probes k.  Paper: k=2 (MLP train), k=4 (eval),
-        k=1 (CNN train), k=2 (CNN eval).
+    model : torch.nn.Module
+        Module exposing ``model.f`` and ``model.g``.
+    x : torch.Tensor
+        Single input sample without a batch dimension.
+    num_probes : int, default=1
+        Number of random probes used in the estimate.
 
     Returns
     -------
-    Scalar tensor.
+    torch.Tensor
+        Scalar JCP/RJCP estimate for the sample.
     """
     dim   = x.numel()
     total = x.new_tensor(0.0)
@@ -62,7 +70,27 @@ def batch_probe_jcp(
     num_probes: int = 2,
 ) -> torch.Tensor:
     """
-    Mean RJCP over a mini-batch.  Used as the JCP training loss term.
+    Estimate the mean Jacobian-composition error over a mini-batch.
+
+    This function applies ``single_sample_probe_jcp`` to samples from
+    ``x_batch`` and averages the resulting scalar estimates. It can be used
+    as a training loss term or as a small-batch diagnostic.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Module exposing ``model.f`` and ``model.g``.
+    x_batch : torch.Tensor
+        Batch of input samples.
+    num_probes : int, default=1
+        Number of random probes per sample.
+    max_samples : int or None, default=None
+        Optional cap on the number of batch samples used.
+
+    Returns
+    -------
+    torch.Tensor
+        Scalar mean JCP estimate over the selected samples.
     """
     values = [
         single_sample_probe_jcp(model, x_batch[i], num_probes=num_probes)
@@ -79,21 +107,28 @@ def estimate_rjcp_dataset(
     max_samples: int = 64,
 ) -> float:
     """
-    Runtime RJCP diagnostic — no gradients, no model.train().
+    Estimate RJCP over a dataset subset.
 
-    RJCP = 0  iff  J_g(f(x)) J_f(x) = I (perfect local inverse).
-    Monitor during training: if RJCP plateaus above 1.0, train longer.
+    RJCP is a runtime diagnostic for the learned local inverse. It measures
+    how close the composed Jacobian ``J_g(f(x)) J_f(x)`` is to the identity on
+    randomly probed directions. The estimate is computed without updating the
+    model parameters.
 
     Parameters
     ----------
-    model : DeceptronMLP or DeceptronCNN3D
-    x_data : Tensor — inputs to evaluate over (any device)
-    num_probes : int — k=4 recommended for eval (optimal per paper Fig A4)
-    max_samples : int — cap for speed
+    model : torch.nn.Module
+        Module exposing ``model.f`` and ``model.g``.
+    x_data : torch.Tensor
+        Input samples used for the diagnostic.
+    num_probes : int, default=2
+        Number of random probes per sample.
+    max_samples : int, default=64
+        Maximum number of samples used from ``x_data``.
 
     Returns
     -------
-    float : mean RJCP
+    float
+        Mean RJCP estimate over the selected samples.
     """
     model.eval()
     device = next(model.parameters()).device
