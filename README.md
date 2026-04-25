@@ -8,9 +8,6 @@
 
 PyTorch implementation of **D-IPG** — a solver that learns a local inverse of any differentiable forward operator and uses it to precondition iterative inverse-problem solves. Achieves **12–28× wall-clock speedup** over Gauss-Newton with higher reliability across diverse PDE families.
 
-Based on: *Deceptron: Learned Local Inverses for Fast and Stable Physics Inversion*  
-NeurIPS ML4PS 2025 / Extended submission under review.
-
 ---
 
 ## Installation
@@ -195,14 +192,12 @@ deceptron/
 
 ## Citation
 
-```bibtex
 @article{kachhadiya2025deceptron,
   title   = {Deceptron: Learned Local Inverses for Fast and Stable Physics Inversion},
   author  = {Kachhadiya, Aaditya L.},
-  journal = {Machine Learning and the Physical Sciences Workshop, NeurIPS},
-  year    = {2025},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2026},
 }
-```
 
 ---
 
