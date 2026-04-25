@@ -148,11 +148,6 @@ def train_forward(
             sched.step()
 
         val_task = _eval_forward_val(model, val_loader, device)
-        val_rjcp = estimate_rjcp_dataset(model, x_val,
-                                          config.jcp_num_probes_eval,
-                                          config.eval_subset_rjcp)
-
-        val_task = _eval_forward_val(model, val_loader, device)
 
         if val_task < best_val:
             best_val   = val_task
