@@ -1,22 +1,14 @@
 """
-deceptron/train.py
-------------------
-Three-stage training pipeline — exact replica of all paper experiments.
+Training utilities for Deceptron models.
 
-Stage 1  train_forward     : fit f_W to (x, y_norm) pairs.  g is untouched.
-Stage 2  train_reverse     : fit g_V with reconstruction + cycle.  f frozen.
-Stage 3  train_reverse_jcp : fine-tune g_V + optional JCP.  f frozen.
+The training pipeline is organized into three stages. First, the forward map
+is trained to approximate the observation operator. Second, the reverse map is
+trained with reconstruction and cycle-consistency losses while the forward map
+is frozen. Third, the reverse map can be fine-tuned with an optional
+Jacobian-composition penalty while keeping the forward map fixed.
 
-Key facts from reading ALL source files:
-  - Heat1D (MLP) Stage 3: uses bias_tie + composition + JCP with weight=1.0
-    No cosine LR scheduler.
-  - Heat3D (CNN) Stage 3: uses only reconstruction + cycle + JCP*0.35
-    HAS CosineAnnealingLR in all three stages.
-    NO bias_tie or composition losses.
-  - All stages: f frozen from Stage 2 onward.
-  - Best checkpoint = lowest (val_rjcp + 1e-3 * val_task) in Stages 2 & 3.
-  - Best checkpoint = lowest val_task in Stage 1.
-  - use_jcp=False: identical to +JCP but probe_jcp_loss = 0. Same arch.
+The functions in this module operate on models exposing ``f`` and ``g``
+methods and return copies loaded with the best validation checkpoint.
 """
 
 import copy
@@ -31,16 +23,17 @@ from torch.utils.data import DataLoader
 from .jcp import batch_probe_jcp, estimate_rjcp_dataset
 
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# Config
 
 @dataclass
 class TrainConfig:
-    """
-    All training hyperparameters.
+"""
+Training hyperparameters for the three-stage Deceptron pipeline.
 
-    MLP defaults (Heat-1D paper values) — override for CNN problems.
-    See train_reverse_jcp() docstring for CNN-specific overrides.
-    """
+The configuration controls optimization budgets, learning rates, loss weights,
+JCP probe counts, gradient clipping, validation subsampling, and scheduler
+usage. Example scripts override these values for specific benchmark settings.
+"""
     # Stage 1
     forward_epochs: int   = 140
     forward_lr: float     = 2e-3
@@ -59,8 +52,8 @@ class TrainConfig:
     # Loss weights (MLP defaults)
     reconstruction_weight: float = 1.0
     cycle_weight: float          = 0.25   # Heat3D uses 0.15
-    bias_tie_weight: float       = 5e-4   # MLP only
-    composition_weight: float    = 1e-3   # MLP only
+    bias_tie_weight: float       = 5e-4   # optional for MLP only
+    composition_weight: float    = 1e-3   # optional for MLP only
     probe_jcp_weight: float      = 1.0    # Heat3D uses 0.35
 
     # JCP settings
@@ -77,7 +70,7 @@ class TrainConfig:
     use_cosine_lr: bool = False    # Heat3D sets True
 
 
-# ── Internal helpers (private) ────────────────────────────────────────────────
+# Internal helpers
 
 def _state_copy(model: nn.Module) -> dict:
     return {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
@@ -90,10 +83,12 @@ def _freeze(module: nn.Module):
 
 @torch.no_grad()
 def _eval_forward_val(model: nn.Module, loader: DataLoader, device: torch.device) -> float:
-    """
-    Exact evaluate_forward_validation_loss from Heat1D.py and Heat3D.py.
-    Iterates the FULL val loader (not one batch).
-    """
+"""
+Evaluate the forward-map validation loss over a full validation loader.
+
+The returned value is the mean squared error between ``model.f(x)`` and the
+target observation over all validation samples.
+"""
     model.eval()
     total, count = 0.0, 0
     for xb, yb in loader:
@@ -103,8 +98,7 @@ def _eval_forward_val(model: nn.Module, loader: DataLoader, device: torch.device
     return total / max(count, 1)
 
 
-# ── Stage 1 ───────────────────────────────────────────────────────────────────
-
+# Stage 1
 def train_forward(
     model: nn.Module,
     train_loader: DataLoader,
@@ -114,12 +108,35 @@ def train_forward(
     device: torch.device,
     verbose: bool = True,
 ) -> nn.Module:
-    """
-    Stage 1: train f_W only.  g_V is untouched.
+"""
+Train the forward map.
 
-    Best checkpoint = lowest val_task over all epochs.
-    Returns model loaded with best checkpoint.
-    """
+Only ``model.forward_map`` is optimized in this stage. The reverse map is left
+unchanged. The returned model is loaded with the checkpoint that achieves the
+lowest forward validation loss.
+
+Parameters
+----------
+model : torch.nn.Module
+    Model exposing ``model.f`` and a ``forward_map`` parameter group.
+train_loader : torch.utils.data.DataLoader
+    Training batches of input--observation pairs.
+val_loader : torch.utils.data.DataLoader
+    Validation batches used for checkpoint selection.
+x_val : torch.Tensor
+    Validation inputs. Included for API consistency with later stages.
+config : TrainConfig
+    Training hyperparameters.
+device : torch.device
+    Device used for training.
+verbose : bool, default=True
+    Whether to print progress.
+
+Returns
+-------
+torch.nn.Module
+    Model loaded with the best validation checkpoint.
+"""
     opt = torch.optim.Adam(
         model.forward_map.parameters(),
         lr=config.forward_lr,
@@ -161,7 +178,7 @@ def train_forward(
     return model
 
 
-# ── Stage 2 ───────────────────────────────────────────────────────────────────
+# Stage 2
 
 def train_reverse(
     model_stage1: nn.Module,
@@ -172,12 +189,36 @@ def train_reverse(
     device: torch.device,
     verbose: bool = True,
 ) -> nn.Module:
-    """
-    Stage 2: train g_V with reconstruction + cycle losses.  f_W frozen.
+"""
+Train the reverse map with the forward map frozen.
 
-    Starts from a DEEP COPY of model_stage1 so the original is untouched.
-    Best checkpoint = lowest (val_rjcp + 1e-3 * val_task).
-    """
+The reverse map is optimized using reconstruction and cycle-consistency
+objectives. The input model is deep-copied before training, so the original
+model is not modified. The returned model is loaded with the best validation
+checkpoint according to the reverse-stage validation score.
+
+Parameters
+----------
+model_stage1 : torch.nn.Module
+    Model after forward-map training.
+train_loader : torch.utils.data.DataLoader
+    Training batches of input--observation pairs.
+val_loader : torch.utils.data.DataLoader
+    Validation batches used for checkpoint selection.
+x_val : torch.Tensor
+    Validation inputs used for RJCP diagnostics.
+config : TrainConfig
+    Training hyperparameters.
+device : torch.device
+    Device used for training.
+verbose : bool, default=True
+    Whether to print progress.
+
+Returns
+-------
+torch.nn.Module
+    Model loaded with the best reverse-stage checkpoint.
+"""
     model = copy.deepcopy(model_stage1)
     _freeze(model.forward_map)
 
@@ -231,7 +272,7 @@ def train_reverse(
     return model
 
 
-# ── Stage 3 ───────────────────────────────────────────────────────────────────
+# Stage 3
 
 def train_reverse_jcp(
     model_stage2: nn.Module,
@@ -244,32 +285,40 @@ def train_reverse_jcp(
     mlp_extra_losses: bool = True,
     verbose: bool = True,
 ) -> nn.Module:
-    """
-    Stage 3: fine-tune g_V with optional JCP.  f_W frozen.
+"""
+Fine-tune the reverse map with an optional Jacobian-composition penalty.
 
-    Starts from a DEEP COPY of model_stage2 so the original is untouched.
-    This means +JCP and -JCP can both start from the same Stage 2 checkpoint.
+The forward map remains frozen. The input model is deep-copied before
+fine-tuning, allowing JCP and non-JCP variants to start from the same reverse
+checkpoint. When ``use_jcp`` is enabled, the objective includes a probe-based
+penalty that encourages ``J_g(f(x)) J_f(x)`` to approximate the identity.
 
-    Parameters
-    ----------
-    use_jcp : bool
-        True  → standard +JCP (default, recommended)
-        False → -JCP ablation (expert mode)
+Parameters
+----------
+model_stage2 : torch.nn.Module
+    Model after reverse-map training.
+train_loader : torch.utils.data.DataLoader
+    Training batches of input--observation pairs.
+val_loader : torch.utils.data.DataLoader
+    Validation batches used for checkpoint selection.
+x_val : torch.Tensor
+    Validation inputs used for RJCP diagnostics.
+config : TrainConfig
+    Training hyperparameters.
+device : torch.device
+    Device used for training.
+use_jcp : bool, default=True
+    Whether to include the Jacobian-composition penalty.
+mlp_extra_losses : bool, default=False
+    Whether to include optional MLP-specific auxiliary losses.
+verbose : bool, default=True
+    Whether to print progress.
 
-    mlp_extra_losses : bool
-        True  → include bias_tie + composition losses (MLP, Heat-1D protocol)
-        False → skip them (CNN, Heat-3D protocol — no explicit weight matrices)
-
-    Loss composition:
-        reconstruction_weight * ||g(f(x)) - x||²
-      + cycle_weight          * ||f(g(y~)) - y~||²
-      + [bias_tie_weight      * ||b_f.mean + b_g0.mean||²]   (mlp_extra_losses only)
-      + [composition_weight   * ||V[:d,:] W - I||²]           (mlp_extra_losses only)
-      + [probe_jcp_weight     * JCP(x)]                       (use_jcp only)
-
-    probe_jcp_weight = 1.0 for MLP (Heat-1D), 0.35 for CNN (Heat-3D).
-    Set config.probe_jcp_weight accordingly.
-    """
+Returns
+-------
+torch.nn.Module
+    Model loaded with the best fine-tuning checkpoint.
+"""
     model = copy.deepcopy(model_stage2)
     _freeze(model.forward_map)
 
@@ -297,7 +346,7 @@ def train_reverse_jcp(
             xb, yb = xb.to(device), yb.to(device)
             opt.zero_grad(set_to_none=True)
 
-            # f is frozen — detach to avoid building the graph through f
+            # f is frozen, detach to avoid building the graph through f
             with torch.no_grad():
                 y_pred = model.f(xb)
 
@@ -312,7 +361,7 @@ def train_reverse_jcp(
                     config.cycle_weight           * loss_cyc)
 
             if mlp_extra_losses:
-                # bias tie  (Heat-1D protocol, exact from paper)
+                # bias tie  (Heat-1D protocol)
                 fwd_bias = model.forward_map.linear.bias.detach()
                 rev_bias = model.reverse_map.network[0].bias
                 loss_bias = torch.mean((fwd_bias.mean() + rev_bias.mean()) ** 2)
