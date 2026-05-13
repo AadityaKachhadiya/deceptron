@@ -64,13 +64,13 @@ J_g(f_W(x))J_f(x)-I
 
 without explicitly forming full Jacobian matrices.
 
-When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$end:math:text$ acts as a learned local left inverse of $J\_f\(x\)$. In full-column-rank least-squares regimes, this makes the induced D-IPG update locally Gauss--Newton-like.
+When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$ acts as a learned local left inverse of $J\_f\(x\)$. In full-column-rank least-squares regimes, this makes the induced D-IPG update locally Gauss--Newton-like.
 
 ---
 
 ## D-IPG inference update
 
-At inference time, all model parameters are fixed and optimization is performed only over the latent variable $x$. Given the current iterate $x\_t$end:math:text$,
+At inference time, all model parameters are fixed and optimization is performed only over the latent variable $x$. Given the current iterate $x\_t$,
 
 ```math
 y_t=f_W(x_t),
@@ -339,7 +339,7 @@ print(f"RJCP = {rjcp:.4f}")
 
 ## Architecture options
 
-### MLP — flat/vector inputs
+### MLP -- flat/vector inputs
 
 For vector-valued inverse problems:
 
@@ -353,7 +353,7 @@ model = DeceptronMLP(
 )
 ```
 
-### CNN — spatial PDE inputs
+### CNN -- spatial PDE inputs
 
 For spatial PDE inverse problems:
 
