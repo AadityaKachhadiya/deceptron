@@ -28,15 +28,15 @@ $$
 \Phi(x)=\frac{1}{2}\|f_W(x)-y^\star\|_2^2.
 $$
 
-Classical nonlinear least-squares methods such as Gauss--Newton and Levenberg--Marquardt repeatedly reconstruct local inverse geometry by forming or applying the forward Jacobian $J\_f\(x\)$ and solving a linearized system at each iteration.
+Classical nonlinear least-squares methods such as Gauss-Newton and Levenberg-Marquardt repeatedly reconstruct local inverse geometry by forming or applying the forward Jacobian $J\_f\(x\)$ and solving a linearized system at each iteration.
 
 Deceptron learns a bidirectional module
 
-$$
+```math
 (f_W,g_V),
 \qquad
 g_V:\mathbb{R}^{d_{\mathrm{out}}}\to\mathbb{R}^{d_{\mathrm{in}}},
-$$
+```
 
 where $f\_W$ is the learned forward surrogate and $g\_V$ is a learned reverse map. The reverse map is not used only as a one-shot inverse predictor. Instead, the goal is to train the **Jacobian of the reverse map** to behave like a local inverse of the forward Jacobian.
 
@@ -64,7 +64,7 @@ J_g(f_W(x))J_f(x)-I
 
 without explicitly forming full Jacobian matrices.
 
-When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$ acts as a learned local left inverse of $J\_f\(x\)$. In full-column-rank least-squares regimes, this makes the induced D-IPG update locally Gauss--Newton-like.
+When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$ acts as a learned local left inverse of $J\_f\(x\)$. In full-column-rank least-squares regimes, this makes the induced D-IPG update locally Gauss-Newton-like.
 
 ---
 
@@ -131,7 +131,7 @@ while avoiding a new Jacobian-based linear solve at every iteration.
 D-IPG is intended for amortized inverse-problem regimes where:
 
 - many inverse solves share the same forward family,
-- classical Gauss--Newton or Levenberg--Marquardt solves are expensive,
+- classical Gauss-Newton or Levenberg-Marquardt solves are expensive,
 - first-order methods are cheap but unreliable or slow,
 - a learned reverse operator can be trained once and reused.
 
@@ -139,7 +139,7 @@ In this setting, Deceptron shifts part of the cost from repeated inference-time 
 
 The package includes:
 
-- learned forward--reverse Deceptron modules,
+- learned forward-reverse Deceptron modules,
 - JCP training utilities,
 - RJCP diagnostics for runtime inverse-consistency measurement,
 - D-IPG inference solver,
@@ -339,7 +339,7 @@ print(f"RJCP = {rjcp:.4f}")
 
 ## Architecture options
 
-### MLP -- flat/vector inputs
+### MLP: flat/vector inputs
 
 For vector-valued inverse problems:
 
@@ -353,7 +353,7 @@ model = DeceptronMLP(
 )
 ```
 
-### CNN -- spatial PDE inputs
+### CNN: spatial PDE inputs
 
 For spatial PDE inverse problems:
 
@@ -456,9 +456,9 @@ The paper evaluates Deceptron/D-IPG on PDE inverse problems including:
 - Heat-2D,
 - Heat-3D,
 - Darcy-2D,
-- Advection--Diffusion-2D,
-- Allen--Cahn-2D,
-- Navier--Stokes-2D.
+- Advection-Diffusion-2D,
+- Allen-Cahn-2D,
+- Navier-Stokes-2D.
 
 Representative results:
 
@@ -466,9 +466,9 @@ Representative results:
 |---|---:|---|---|
 | Heat-3D | 100% | LM | D-IPG matches recovery quality at much lower inference-time cost |
 | Adv.-Diff.-2D | 100% | LM | D-IPG improves reliability and wall-clock solve time |
-| Allen--Cahn-2D | 100% | L-BFGS | JCP strongly improves basin access and reliability |
+| Allen-Cahn-2D | 100% | L-BFGS | JCP strongly improves basin access and reliability |
 | Darcy-2D | 68.8% | LM | hard ill-conditioned elliptic inverse problem |
-| Heat-1D | 24.3% | GD / LM variants | known failure mode for learned reverse geometry |
+| Heat-1D | 24.3% | LM | known failure mode for learned reverse geometry |
 
 The strongest results occur in amortized regimes where many inverse instances are solved for the same trained forward family.
 
