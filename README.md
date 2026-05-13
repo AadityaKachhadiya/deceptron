@@ -42,26 +42,25 @@ where $f\_W$ is the learned forward surrogate and $g\_V$ is a learned reverse ma
 
 The central training signal is the **Jacobian Composition Penalty (JCP)**:
 
-$$
+```math
 \mathcal{L}_{\mathrm{JCP}}
 =
 \mathbb{E}_{x,\xi}
 \left\|
 J_g(f_W(x))J_f(x)\xi-\xi
 \right\|_2^2,
-$$
+```
 
 where $\\xi$ is a random Hutchinson probe vector. Since
 
-$$
+```math
 \mathbb{E}_{\xi}\|A\xi\|_2^2=\|A\|_F^2,
-$$
-
+```
 JCP estimates the local composition defect
 
-$$
+```math
 J_g(f_W(x))J_f(x)-I
-$$
+```
 
 without explicitly forming full Jacobian matrices.
 
@@ -73,55 +72,55 @@ When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$end:math:text
 
 At inference time, all model parameters are fixed and optimization is performed only over the latent variable $x$. Given the current iterate $x\_t$end:math:text$,
 
-$$
+```math
 y_t=f_W(x_t),
 \qquad
 r_t=y_t-y^\star.
-$$
+```
 
 D-IPG first takes a residual correction in measurement space:
 
-$$
+```math
 y_{t+1}^{\mathrm{prop}}=y_t-\alpha_t r_t.
-$$
+```
 
 It then pulls this measurement-space proposal back into latent space through the learned reverse map:
 
-$$
+```math
 x_{t+1}^{\mathrm{prop}}=g_V(y_{t+1}^{\mathrm{prop}}).
-$$
+```
 
 The proposal is relaxed, projected to feasible constraints when needed, and accepted using Armijo backtracking on the explicit objective $\\Phi\(x\)$.
 
 A first-order expansion gives
 
-$$
+```math
 g_V(y_t-\alpha_t r_t)
 =
 g_V(y_t)-\alpha_t J_g(y_t)r_t
 +
 O(\alpha_t^2\|r_t\|_2^2).
-$$
+```
 
 When $g\_V\(f\_W\(x\_t\)\)\\approx x\_t$, this induces the latent-space step
 
-$$
+```math
 x_{t+1}^{\mathrm{prop}}
 \approx
 x_t-\alpha_t J_g(f_W(x_t))r_t.
-$$
+```
 
 Thus $J\_g\(f\_W\(x\_t\)\)$ acts as an amortized inverse-preconditioner. If
 
-$$
+```math
 J_g(f_W(x_t))\approx J_f(x_t)^+,
-$$
+```
 
 then D-IPG approximates a damped Gauss--Newton step
 
-$$
+```math
 x_t-\alpha_t J_f(x_t)^+r_t,
-$$
+```
 
 while avoiding a new Jacobian-based linear solve at every iteration.
 
@@ -272,33 +271,33 @@ Most experiments follow a three-stage protocol.
 
 Train $f\_W$ to approximate the forward map:
 
-$$
+```math
 \mathcal{L}_{\mathrm{task}}
 =
 \|f_W(x)-y\|_2^2.
-$$
+```
 
 ### Stage 2: reverse-map pretraining
 
 Freeze $f\_W$, then train $g\_V$ using reconstruction and cycle-consistency losses:
 
-$$
+```math
 \mathcal{L}_{\mathrm{rec}}
 =
 \|g_V(f_W(x))-x\|_2^2,
-$$
+```
 
-$$
+```math
 \mathcal{L}_{\mathrm{cyc}}
 =
 \|f_W(g_V(\widetilde{y}))-\widetilde{y}\|_2^2.
-$$
+```
 
 ### Stage 3: JCP fine-tuning
 
 Initialize from the pretrained reverse map and continue training with or without JCP:
 
-$$
+```math
 \mathcal{L}
 =
 \lambda_{\mathrm{rec}}\mathcal{L}_{\mathrm{rec}}
@@ -308,7 +307,7 @@ $$
 \lambda_{\mathrm{JCP}}\mathcal{L}_{\mathrm{JCP}}
 +
 \mathcal{R}(W,V),
-$$
+```
 
 where $\\mathcal\{R\}\(W\,V\)$ denotes optional lightweight stabilization terms.
 
@@ -320,14 +319,14 @@ The $\+\\mathrm\{JCP\}$ and $\-\\mathrm\{JCP\}$ variants share the same forward 
 
 The same composition defect used for training can be evaluated at runtime:
 
-$$
+```math
 \mathrm{RJCP}(x)
 =
 \mathbb{E}_{\xi}
 \left\|
 J_g(f_W(x))J_f(x)\xi-\xi
 \right\|_2^2.
-$$
+```
 
 RJCP measures whether the learned reverse geometry remains locally consistent along an optimization trajectory. Lower RJCP generally indicates better learned inverse consistency, although reliability also depends on conditioning, residual structure, and the quality of the forward surrogate.
 
@@ -479,15 +478,15 @@ The strongest results occur in amortized regimes where many inverse instances ar
 
 Classical nonlinear least-squares methods repeatedly reconstruct local inverse geometry. For example, Gauss--Newton solves
 
-$$
+```math
 (J_f^\top J_f)\Delta x=-J_f^\top r
-$$
+```
 
 at each iteration, and Levenberg--Marquardt solves
 
-$$
+```math
 (J_f^\top J_f+\lambda I)\Delta x=-J_f^\top r.
-$$
+```
 
 D-IPG instead uses the learned reverse Jacobian action implicitly through $g\_V$. Once the Deceptron module is trained, each D-IPG proposal requires network evaluations and an Armijo acceptance check rather than a new Jacobian-based linear solve.
 
