@@ -528,11 +528,14 @@ Armijo backtracking is used as an acceptance safeguard for learned proposals. Be
 ## Citation
 
 ```bibtex
-@article{kachhadiya2026localinversegeometry,
-  title   = {Local Inverse Geometry Can Be Amortized},
-  author  = {Kachhadiya, Aaditya L.},
-  journal = {arXiv preprint arXiv:XXXX.XXXXX},
-  year    = {2026}
+@misc{kachhadiya2026localinversegeometryamortized,
+      title={Local Inverse Geometry Can Be Amortized}, 
+      author={Aaditya L. Kachhadiya},
+      year={2026},
+      eprint={2605.13068},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2605.13068}, 
 }
 ```
 
@@ -541,7 +544,7 @@ For the earlier workshop version:
 ```bibtex
 @inproceedings{kachhadiya2025deceptron,
   title     = {Deceptron: Learned Local Inverses for Fast and Stable Physics Inversion},
-  author    = {Kachhadiya, Aaditya L.},
+  author    = {Aaditya L. Kachhadiya},
   booktitle = {NeurIPS 2025 Workshop on Machine Learning and the Physical Sciences},
   year      = {2025},
   note      = {arXiv:2511.21076}
