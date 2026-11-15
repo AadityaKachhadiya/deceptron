@@ -1,14 +1,21 @@
 # Deceptron
 
-Learn a reverse map once and reuse it to solve nonlinear inverse problems that share a forward model.
-
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AadityaKachhadiya/deceptron/blob/main/examples/quickstart.ipynb)
+[![Python 3.9 or later](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](#system-requirements)
+[![PyTorch 2.0 or later](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](#system-requirements)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Paper** · [*Local Inverse Geometry Can Be Amortized*](https://arxiv.org/abs/2605.13068)
+Deceptron is a PyTorch package for solving repeated nonlinear inverse problems with a learned reverse map.
+
+[**Local Inverse Geometry Can Be Amortized**](https://arxiv.org/abs/2605.13068) — Aaditya L. Kachhadiya, 2026.
+
+## System requirements
+
+- Python 3.9 or later, PyTorch 2.0 or later, and NumPy 1.24 or later.
+- Git for installation from GitHub. The install command resolves the Python dependencies.
+- A CPU is sufficient for the quick start and checkpoint replays. Use a CUDA-enabled PyTorch environment for GPU benchmark training.
 
 ## Installation
-
-Requires Python 3.9 or later and PyTorch 2.0 or later.
 
 ```bash
 python -m pip install git+https://github.com/AadityaKachhadiya/deceptron.git
@@ -16,8 +23,7 @@ python -m pip install git+https://github.com/AadityaKachhadiya/deceptron.git
 
 ## Quick start
 
-Run D-IPG from any Python file. This example supplies an exact reverse
-map for the measurement equation `y = 2x`:
+This example calls D-IPG with an exact reverse map for the measurement equation `y = 2x`.
 
 ```python
 import torch
@@ -27,10 +33,10 @@ result = DIPG(model, torch.tensor([0.8]), torch.zeros(1), SolverConfig(tolerance
 print(result["x_hat"])  # approximately tensor([0.4000])
 ```
 
-The [quick-start notebook](examples/quickstart.ipynb) also trains a
-reverse map for a custom measurement equation and displays a pretrained
-Heat-3D recovery inline. See [Training with your own data](docs/user_guide.md#training-with-your-own-data)
-for the training API.
+The [quick-start notebook](examples/quickstart.ipynb) trains a reverse map
+for a custom measurement equation and displays a pretrained Heat-3D
+recovery. The [user guide](docs/user_guide.md#training-with-your-own-data)
+shows how to train with your own data.
 
 ## Reproduce the paper
 
@@ -65,7 +71,7 @@ and compare the resulting flow with the withheld snapshot. [Run and data](reprod
 **Allen–Cahn.** Projected cumulative time at a common measurement
 tolerance, including Deceptron training cost. [Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization)
 
-## Citation
+## Cite this work
 
 ```bibtex
 @misc{kachhadiya2026localinversegeometryamortized,
@@ -79,6 +85,12 @@ tolerance, including Deceptron training cost. [Run and timing protocol](reproduc
 }
 ```
 
+## Questions
+
+For help using the package, data, or benchmark scripts, open a
+[GitHub issue](https://github.com/AadityaKachhadiya/deceptron/issues).
+Include the command you ran and any error output.
+
 ## License
 
-[MIT](LICENSE).
+Deceptron is released under the [MIT License](LICENSE).
