@@ -27,13 +27,13 @@ from .jcp import batch_probe_jcp, estimate_rjcp_dataset
 
 @dataclass
 class TrainConfig:
-"""
-Training hyperparameters for the three-stage Deceptron pipeline.
+    """
+    Training hyperparameters for the three-stage Deceptron pipeline.
 
-The configuration controls optimization budgets, learning rates, loss weights,
-JCP probe counts, gradient clipping, validation subsampling, and scheduler
-usage. Example scripts override these values for specific benchmark settings.
-"""
+    The configuration controls optimization budgets, learning rates, loss weights,
+    JCP probe counts, gradient clipping, validation subsampling, and scheduler
+    usage. Example scripts override these values for specific benchmark settings.
+    """
     # Stage 1
     forward_epochs: int   = 140
     forward_lr: float     = 2e-3
@@ -83,12 +83,12 @@ def _freeze(module: nn.Module):
 
 @torch.no_grad()
 def _eval_forward_val(model: nn.Module, loader: DataLoader, device: torch.device) -> float:
-"""
-Evaluate the forward-map validation loss over a full validation loader.
+    """
+    Evaluate the forward-map validation loss over a full validation loader.
 
-The returned value is the mean squared error between ``model.f(x)`` and the
-target observation over all validation samples.
-"""
+    The returned value is the mean squared error between ``model.f(x)`` and the
+    target observation over all validation samples.
+    """
     model.eval()
     total, count = 0.0, 0
     for xb, yb in loader:
@@ -108,35 +108,35 @@ def train_forward(
     device: torch.device,
     verbose: bool = True,
 ) -> nn.Module:
-"""
-Train the forward map.
+    """
+    Train the forward map.
 
-Only ``model.forward_map`` is optimized in this stage. The reverse map is left
-unchanged. The returned model is loaded with the checkpoint that achieves the
-lowest forward validation loss.
+    Only ``model.forward_map`` is optimized in this stage. The reverse map is left
+    unchanged. The returned model is loaded with the checkpoint that achieves the
+    lowest forward validation loss.
 
-Parameters
-----------
-model : torch.nn.Module
-    Model exposing ``model.f`` and a ``forward_map`` parameter group.
-train_loader : torch.utils.data.DataLoader
-    Training batches of input--observation pairs.
-val_loader : torch.utils.data.DataLoader
-    Validation batches used for checkpoint selection.
-x_val : torch.Tensor
-    Validation inputs. Included for API consistency with later stages.
-config : TrainConfig
-    Training hyperparameters.
-device : torch.device
-    Device used for training.
-verbose : bool, default=True
-    Whether to print progress.
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Model exposing ``model.f`` and a ``forward_map`` parameter group.
+    train_loader : torch.utils.data.DataLoader
+        Training batches of input--observation pairs.
+    val_loader : torch.utils.data.DataLoader
+        Validation batches used for checkpoint selection.
+    x_val : torch.Tensor
+        Validation inputs. Included for API consistency with later stages.
+    config : TrainConfig
+        Training hyperparameters.
+    device : torch.device
+        Device used for training.
+    verbose : bool, default=True
+        Whether to print progress.
 
-Returns
--------
-torch.nn.Module
-    Model loaded with the best validation checkpoint.
-"""
+    Returns
+    -------
+    torch.nn.Module
+        Model loaded with the best validation checkpoint.
+    """
     opt = torch.optim.Adam(
         model.forward_map.parameters(),
         lr=config.forward_lr,
@@ -189,36 +189,36 @@ def train_reverse(
     device: torch.device,
     verbose: bool = True,
 ) -> nn.Module:
-"""
-Train the reverse map with the forward map frozen.
+    """
+    Train the reverse map with the forward map frozen.
 
-The reverse map is optimized using reconstruction and cycle-consistency
-objectives. The input model is deep-copied before training, so the original
-model is not modified. The returned model is loaded with the best validation
-checkpoint according to the reverse-stage validation score.
+    The reverse map is optimized using reconstruction and cycle-consistency
+    objectives. The input model is deep-copied before training, so the original
+    model is not modified. The returned model is loaded with the best validation
+    checkpoint according to the reverse-stage validation score.
 
-Parameters
-----------
-model_stage1 : torch.nn.Module
-    Model after forward-map training.
-train_loader : torch.utils.data.DataLoader
-    Training batches of input--observation pairs.
-val_loader : torch.utils.data.DataLoader
-    Validation batches used for checkpoint selection.
-x_val : torch.Tensor
-    Validation inputs used for RJCP diagnostics.
-config : TrainConfig
-    Training hyperparameters.
-device : torch.device
-    Device used for training.
-verbose : bool, default=True
-    Whether to print progress.
+    Parameters
+    ----------
+    model_stage1 : torch.nn.Module
+        Model after forward-map training.
+    train_loader : torch.utils.data.DataLoader
+        Training batches of input--observation pairs.
+    val_loader : torch.utils.data.DataLoader
+        Validation batches used for checkpoint selection.
+    x_val : torch.Tensor
+        Validation inputs used for RJCP diagnostics.
+    config : TrainConfig
+        Training hyperparameters.
+    device : torch.device
+        Device used for training.
+    verbose : bool, default=True
+        Whether to print progress.
 
-Returns
--------
-torch.nn.Module
-    Model loaded with the best reverse-stage checkpoint.
-"""
+    Returns
+    -------
+    torch.nn.Module
+        Model loaded with the best reverse-stage checkpoint.
+    """
     model = copy.deepcopy(model_stage1)
     _freeze(model.forward_map)
 
@@ -285,40 +285,40 @@ def train_reverse_jcp(
     mlp_extra_losses: bool = True,
     verbose: bool = True,
 ) -> nn.Module:
-"""
-Fine-tune the reverse map with an optional Jacobian-composition penalty.
+    """
+    Fine-tune the reverse map with an optional Jacobian-composition penalty.
 
-The forward map remains frozen. The input model is deep-copied before
-fine-tuning, allowing JCP and non-JCP variants to start from the same reverse
-checkpoint. When ``use_jcp`` is enabled, the objective includes a probe-based
-penalty that encourages ``J_g(f(x)) J_f(x)`` to approximate the identity.
+    The forward map remains frozen. The input model is deep-copied before
+    fine-tuning, allowing JCP and non-JCP variants to start from the same reverse
+    checkpoint. When ``use_jcp`` is enabled, the objective includes a probe-based
+    penalty that encourages ``J_g(f(x)) J_f(x)`` to approximate the identity.
 
-Parameters
-----------
-model_stage2 : torch.nn.Module
-    Model after reverse-map training.
-train_loader : torch.utils.data.DataLoader
-    Training batches of input--observation pairs.
-val_loader : torch.utils.data.DataLoader
-    Validation batches used for checkpoint selection.
-x_val : torch.Tensor
-    Validation inputs used for RJCP diagnostics.
-config : TrainConfig
-    Training hyperparameters.
-device : torch.device
-    Device used for training.
-use_jcp : bool, default=True
-    Whether to include the Jacobian-composition penalty.
-mlp_extra_losses : bool, default=False
-    Whether to include optional MLP-specific auxiliary losses.
-verbose : bool, default=True
-    Whether to print progress.
+    Parameters
+    ----------
+    model_stage2 : torch.nn.Module
+        Model after reverse-map training.
+    train_loader : torch.utils.data.DataLoader
+        Training batches of input--observation pairs.
+    val_loader : torch.utils.data.DataLoader
+        Validation batches used for checkpoint selection.
+    x_val : torch.Tensor
+        Validation inputs used for RJCP diagnostics.
+    config : TrainConfig
+        Training hyperparameters.
+    device : torch.device
+        Device used for training.
+    use_jcp : bool, default=True
+        Whether to include the Jacobian-composition penalty.
+    mlp_extra_losses : bool, default=False
+        Whether to include optional MLP-specific auxiliary losses.
+    verbose : bool, default=True
+        Whether to print progress.
 
-Returns
--------
-torch.nn.Module
-    Model loaded with the best fine-tuning checkpoint.
-"""
+    Returns
+    -------
+    torch.nn.Module
+        Model loaded with the best fine-tuning checkpoint.
+    """
     model = copy.deepcopy(model_stage2)
     _freeze(model.forward_map)
 

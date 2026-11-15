@@ -23,13 +23,13 @@ import torch.nn as nn
 
 @dataclass
 class SolverConfig:
-"""
-Hyperparameters shared by the inverse-problem solvers.
+    """
+    Hyperparameters shared by the inverse-problem solvers.
 
-Parameters control the iteration budget, stopping tolerance, Armijo
-backtracking, domain projection, and method-specific step sizes or damping.
-The defaults are conservative values intended for the included examples.
-"""
+    Parameters control the iteration budget, stopping tolerance, Armijo
+    backtracking, domain projection, and method-specific step sizes or damping.
+    The defaults are conservative values intended for the included examples.
+    """
     max_iterations: int        = 120
     tolerance_eps: float       = 0.30    # Heat-3D uses 0.38
     armijo_c: float            = 1e-4
@@ -52,12 +52,12 @@ def _clamp(x: torch.Tensor, lo: float, hi: float) -> torch.Tensor:
 
 
 def _phi_grad(f, x: torch.Tensor, y_star: torch.Tensor):
-"""
-Evaluate the least-squares objective, gradient, and residual.
+    """
+    Evaluate the least-squares objective, gradient, and residual.
 
-The objective is ``0.5 * mean((f(x) - y)^2)``. Returned tensors are detached
-from the computation graph.
-"""
+    The objective is ``0.5 * mean((f(x) - y)^2)``. Returned tensors are detached
+    from the computation graph.
+    """
     xr = x.detach().clone().requires_grad_(True)
     r  = f(xr) - y_star
     ph = 0.5 * torch.mean(r * r)
@@ -71,13 +71,13 @@ def _phi_value(f, x: torch.Tensor, y_star: torch.Tensor) -> torch.Tensor:
 
 
 def _armijo_accept(f, x_t, p, y_star, rho, c, lo, hi):
-"""
-Evaluate one projected Armijo backtracking candidate.
+    """
+    Evaluate one projected Armijo backtracking candidate.
 
-The proposed direction ``p`` must have the same shape as ``x``. The returned
-candidate is projected to the configured box constraints before evaluating
-the sufficient-decrease condition.
-"""
+    The proposed direction ``p`` must have the same shape as ``x``. The returned
+    candidate is projected to the configured box constraints before evaluating
+    the sufficient-decrease condition.
+    """
     phi_t, grad_t, _ = _phi_grad(f, x_t, y_star)
     x_trial   = _clamp((1.0 - rho) * x_t + rho * (x_t + p), lo, hi)
     phi_trial = _phi_value(f, x_trial, y_star)
@@ -92,12 +92,12 @@ def _normalized_residual(f, x: torch.Tensor, y_star: torch.Tensor) -> float:
 
 
 def _full_jacobian(f, x: torch.Tensor) -> torch.Tensor:
-"""
-Compute the Jacobian of a single-sample forward map.
+    """
+    Compute the Jacobian of a single-sample forward map.
 
-The function is intended for moderate-dimensional problems where forming the
-full Jacobian is practical.
-"""
+    The function is intended for moderate-dimensional problems where forming the
+    full Jacobian is practical.
+    """
     xr = x.detach().clone().requires_grad_(True)
     def f_single(inp): return f(inp.unsqueeze(0)).squeeze(0)
     J = torch.autograd.functional.jacobian(f_single, xr, vectorize=True)
@@ -105,12 +105,12 @@ full Jacobian is practical.
 
 
 def _solve_linear(A: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-"""
-Solve a dense linear system and return a one-dimensional solution tensor.
+    """
+    Solve a dense linear system and return a one-dimensional solution tensor.
 
-A least-squares fallback is used when the direct solve is ill-conditioned or
-fails.
-"""
+    A least-squares fallback is used when the direct solve is ill-conditioned or
+    fails.
+    """
     b = b.flatten()
     try:
         return torch.linalg.solve(A, b).flatten()
@@ -126,30 +126,30 @@ def solve_dipg(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-"""
-Solve an inverse problem using D-IPG.
+    """
+    Solve an inverse problem using D-IPG.
 
-D-IPG forms proposal steps by applying the learned local inverse to residual
-updates in observation space, followed by projected Armijo backtracking in
-input space.
+    D-IPG forms proposal steps by applying the learned local inverse to residual
+    updates in observation space, followed by projected Armijo backtracking in
+    input space.
 
-Parameters
-----------
-model : torch.nn.Module
-    Trained module exposing ``model.f`` and ``model.g``.
-y_star : torch.Tensor
-    Target observation as a single flat tensor.
-x0 : torch.Tensor
-    Initial input estimate as a single flat tensor.
-config : SolverConfig
-    Solver hyperparameters.
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Trained module exposing ``model.f`` and ``model.g``.
+    y_star : torch.Tensor
+        Target observation as a single flat tensor.
+    x0 : torch.Tensor
+        Initial input estimate as a single flat tensor.
+    config : SolverConfig
+        Solver hyperparameters.
 
-Returns
--------
-dict
-    Dictionary containing the recovered estimate, iteration count, success
-    flag, final residual, wall-clock time, and D-IPG diagnostics.
-"""
+    Returns
+    -------
+    dict
+        Dictionary containing the recovered estimate, iteration count, success
+        flag, final residual, wall-clock time, and D-IPG diagnostics.
+    """
     if config is None:
         config = SolverConfig()
 
@@ -244,12 +244,12 @@ def solve_gradient_descent(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-"""
-Solve an inverse problem with projected gradient descent.
+    """
+    Solve an inverse problem with projected gradient descent.
 
-The method uses only the forward map ``f`` and applies Armijo backtracking to
-the negative gradient direction.
-"""
+    The method uses only the forward map ``f`` and applies Armijo backtracking to
+    the negative gradient direction.
+    """
     if config is None:
         config = SolverConfig()
 
@@ -297,13 +297,13 @@ def solve_gauss_newton(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-"""
-Solve an inverse problem with projected Gauss--Newton iterations.
+    """
+    Solve an inverse problem with projected Gauss--Newton iterations.
 
-The method uses only the forward map ``f``. It forms the local least-squares
-linearization explicitly and applies Armijo backtracking to the resulting
-step.
-"""
+    The method uses only the forward map ``f``. It forms the local least-squares
+    linearization explicitly and applies Armijo backtracking to the resulting
+    step.
+    """
     if config is None:
         config = SolverConfig()
 
@@ -356,13 +356,13 @@ def solve_levenberg_marquardt(
     x0: torch.Tensor,
     config: Optional[SolverConfig] = None,
 ) -> dict:
-"""
-Solve an inverse problem with projected Levenberg--Marquardt iterations.
+    """
+    Solve an inverse problem with projected Levenberg--Marquardt iterations.
 
-The method uses only the forward map ``f``. The Gauss--Newton normal equations
-are damped by the configured Levenberg--Marquardt parameter before applying
-projected Armijo backtracking.
-"""
+    The method uses only the forward map ``f``. The Gauss--Newton normal equations
+    are damped by the configured Levenberg--Marquardt parameter before applying
+    projected Armijo backtracking.
+    """
     if config is None:
         config = SolverConfig()
 

@@ -12,6 +12,35 @@ PyTorch package for **D-IPG** (*Deceptron Inverse-Preconditioned Gradient*), a l
 
 Deceptron is designed for nonlinear inverse problems where many inverse instances share the same forward family, such as PDE inverse problems. Instead of repeatedly reconstructing local inverse geometry through Jacobian-based linear solves, Deceptron learns a reusable reverse operator whose differential action produces Gauss--Newton-like corrections at inference time.
 
+## Recover an initial temperature field
+
+In this Heat-3D example, the unknown is the initial temperature
+$u_0$ on an $8\times8\times8$ grid. The forward problem evolves
+it under the heat equation, $\partial_t u = 0.1\Delta u$, to
+$T=0.012$. Blurring, nonlinear readout, and noise turn the later field
+into the measurement. The solver starts from zero and uses a frozen
+forward–reverse pair to recover the initial field.
+
+With Python and Git installed, run:
+
+```bash
+git clone https://github.com/AadityaKachhadiya/deceptron.git
+cd deceptron
+python -m pip install -e ".[demo]"
+python examples/heat3d_quickstart.py
+```
+
+The script runs on CPU using a bundled checkpoint and one held-out
+observation. Expect a state RMSE near **0.06308** and a normalized
+measurement RMSE near **0.28802**. The output, `heat3d_recovery.png`,
+shows the same slice of the observation, recovery, and ground truth.
+
+![Heat-3D recovery from a noisy measurement](examples/assets/heat3d_preview.png)
+
+See [Reproduce the paper](reproduce/README.md) for the original
+benchmark notebooks, archived result tables, and instructions for
+checking the Allen–Cahn and Navier–Stokes numbers.
+
 ---
 
 ## Core idea
@@ -165,7 +194,12 @@ Python ≥ 3.9, PyTorch ≥ 2.0.
 
 ---
 
-## Quick start
+## Training with your own data
+
+This walkthrough assumes you have paired initial states and normalized
+observations for training and validation, plus a normalized observation
+for inversion. The Heat-3D quick start above supplies an already trained
+model and a held-out observation.
 
 ```python
 import torch
@@ -507,7 +541,8 @@ deceptron/
 ├── examples/
 │   ├── heat1d_demo.py
 │   ├── heat3d_demo.py
-│   └── allen_cahn_demo.py
+│   └── heat3d_quickstart.py
+├── reproduce/         archived results and original benchmark notebooks
 ├── setup.py
 ├── LICENSE
 └── README.md

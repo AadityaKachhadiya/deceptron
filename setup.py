@@ -18,6 +18,7 @@ setup(
         "numpy>=1.24",
     ],
     extras_require={
+        "demo": ["matplotlib>=3.6"],
         "dev": ["pytest", "matplotlib", "pandas"],
     },
     classifiers=[

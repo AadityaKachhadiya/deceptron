@@ -52,22 +52,22 @@ class _ReverseMap(nn.Module):
 
 
 class DeceptronMLP(nn.Module):
-"""
-Deceptron model for flat vector inverse problems.
+    """
+    Deceptron model for flat vector inverse problems.
 
-The forward map and reverse map are represented by separate MLPs. Both maps
-take tensors of shape ``(..., dim)`` and return tensors with the same trailing
-dimension.
+    The forward map and reverse map are represented by separate MLPs. Both maps
+    take tensors of shape ``(..., dim)`` and return tensors with the same trailing
+    dimension.
 
-Parameters
-----------
-dim : int
-    Input and output dimension.
-negative_slope : float, default=0.10
-    LeakyReLU slope used in both maps.
-hidden_multiplier : int, default=2
-    Width multiplier for the reverse map.
-"""
+    Parameters
+    ----------
+    dim : int
+        Input and output dimension.
+    negative_slope : float, default=0.10
+        LeakyReLU slope used in both maps.
+    hidden_multiplier : int, default=2
+        Width multiplier for the reverse map.
+    """
     def __init__(self, dim: int, negative_slope: float = 0.10,
                  hidden_multiplier: int = 2):
         super().__init__()
@@ -143,22 +143,21 @@ class _ReverseCNN3D(nn.Module):
 
 
 class DeceptronCNN3D(nn.Module):
-"""
-Deceptron model for 3-D volumetric inverse problems.
+    """
+    Deceptron model for 3-D volumetric inverse problems.
 
-Inputs are provided as flat tensors of shape ``(batch, nx * ny * nz)``. The
-model reshapes them internally to 3-D volumes, applies convolutional forward
-and reverse maps, and returns flat tensors with the original dimension.
+    Inputs are flat tensors representing either one field or a batch of fields.
+    The convolutional maps preserve the input's shape.
 
-Parameters
-----------
-nx, ny, nz : int
-    Spatial grid dimensions.
-hidden_channels : int, default=12
-    Number of channels used in the convolutional residual blocks.
-negative_slope : float, default=0.10
-    LeakyReLU slope used in the convolutional blocks.
-"""
+    Parameters
+    ----------
+    nx, ny, nz : int
+        Spatial grid dimensions.
+    hidden_channels : int, default=12
+        Number of channels used in the convolutional residual blocks.
+    negative_slope : float, default=0.10
+        LeakyReLU slope used in the convolutional blocks.
+    """
     def __init__(self, nx: int, ny: int, nz: int,
                  hidden_channels: int = 12, negative_slope: float = 0.10):
         super().__init__()
@@ -166,9 +165,13 @@ negative_slope : float, default=0.10
         self.reverse_map = _ReverseCNN3D(nx, ny, nz, hidden_channels, negative_slope)
 
     def f(self, x: torch.Tensor) -> torch.Tensor:
+        if x.ndim == 1:
+            return self.forward_map(x.unsqueeze(0)).squeeze(0)
         return self.forward_map(x)
 
     def g(self, y: torch.Tensor) -> torch.Tensor:
+        if y.ndim == 1:
+            return self.reverse_map(y.unsqueeze(0)).squeeze(0)
         return self.reverse_map(y)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
