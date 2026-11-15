@@ -29,4 +29,4 @@ print(result["x_hat"])  # approximately tensor([0.4000])
 
 - [Open in Colab](https://colab.research.google.com/github/AadityaKachhadiya/deceptron/blob/main/examples/quickstart.ipynb) to train a small reverse map and view a Heat-3D reconstruction.
 - [Train with your own data](user_guide.md#training-with-your-own-data) using your own maps or paired states and measurements.
-- [Reproduce the paper](reproduce/README.md) to run the seven PDE benchmarks, checkpoint replays, and figure generation.
+- [Reproduce the paper](../reproduce/README.md) to run the seven PDE benchmarks, checkpoint replays, and figure generation.
