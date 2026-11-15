@@ -18,6 +18,8 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
+from .models import _model_device
+
 
 # Config 
 
@@ -154,7 +156,7 @@ def solve_dipg(
         config = SolverConfig()
 
     model.eval()
-    device = next(model.parameters()).device
+    device = _model_device(model, x0.device)
     x      = x0.clone().to(device).flatten()
     y_star = y_star.to(device).flatten()
     lo, hi = config.x_low, config.x_high

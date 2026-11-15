@@ -8,13 +8,60 @@ The models in this module expose a common interface:
     model.g(y)
         Learned local inverse map.
 
-Both maps operate on tensors with matching input and output dimensions. The
-MLP model is intended for flat vector inputs, while the 3-D CNN model accepts
-flat vectors externally and reshapes them internally to volumetric grids.
+The built-in MLP and 3-D CNN map between spaces of equal dimension.
+DeceptronModule accepts custom maps with different state and observation
+dimensions.
 """
+from itertools import chain
+from typing import Callable
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+
+def _model_device(model: nn.Module, fallback: torch.device) -> torch.device:
+    tensor = next(chain(model.parameters(), model.buffers()), None)
+    return fallback if tensor is None else tensor.device
+
+
+class _CallableMap(nn.Module):
+    def __init__(self, mapping: Callable[[torch.Tensor], torch.Tensor]):
+        super().__init__()
+        self.mapping = mapping
+
+    def forward(self, value: torch.Tensor) -> torch.Tensor:
+        return self.mapping(value)
+
+
+class DeceptronModule(nn.Module):
+    """Pair a differentiable forward map with a differentiable reverse map.
+
+    Supply PyTorch modules for maps with parameters or device-dependent
+    buffers, or tensor-to-tensor functions for stateless maps. Each map must
+    accept a flat sample and a batch of flat samples. The output of each map
+    must have the input dimension expected by the other map.
+    """
+
+    def __init__(
+        self,
+        forward_map: Callable[[torch.Tensor], torch.Tensor],
+        reverse_map: Callable[[torch.Tensor], torch.Tensor],
+    ):
+        super().__init__()
+        if not callable(forward_map) or not callable(reverse_map):
+            raise TypeError("forward_map and reverse_map must be callable")
+        self.forward_map = forward_map if isinstance(forward_map, nn.Module) else _CallableMap(forward_map)
+        self.reverse_map = reverse_map if isinstance(reverse_map, nn.Module) else _CallableMap(reverse_map)
+
+    def f(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward_map(x)
+
+    def g(self, y: torch.Tensor) -> torch.Tensor:
+        return self.reverse_map(y)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.f(x)
 
 
 # MLP 
