@@ -7,7 +7,7 @@
 
 Deceptron is a PyTorch package for solving repeated nonlinear inverse problems with a learned reverse map.
 
-[**Local Inverse Geometry Can Be Amortized**](https://arxiv.org/abs/2605.13068) — Aaditya L. Kachhadiya, 2026.
+[A. L. Kachhadiya. Local Inverse Geometry Can Be Amortized. *arXiv preprint* arXiv:2605.13068, 2026](https://doi.org/10.48550/arXiv.2605.13068).
 
 ## System requirements
 
@@ -84,12 +84,14 @@ tolerance for D-IPG and Levenberg–Marquardt. Under that protocol, the
 projected break-even point is **628 solves**.
 
 <p align="center">
-  <img src="examples/assets/allen_cahn_break_even.png" width="350" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
+  <img src="examples/assets/allen_cahn_break_even.png" width="380" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
 </p>
 
 [Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization).
 
 ## Cite this work
+
+For work that uses this repository, cite the 2026 preprint.
 
 ```bibtex
 @misc{kachhadiya2026localinversegeometryamortized,
@@ -102,6 +104,9 @@ projected break-even point is **628 solves**.
       url={https://arxiv.org/abs/2605.13068},
 }
 ```
+
+**Earlier workshop paper.** [A. L. Kachhadiya. Deceptron: Learned Local Inverses for Fast and Stable Physics Inversion. *Machine Learning and the Physical Sciences Workshop, NeurIPS*, 2025](https://ml4physicalsciences.github.io/2025/files/NeurIPS_ML4PS_2025_13.pdf).
+See the [workshop BibTeX](docs/user_guide.md#workshop-paper) when citing that version.
 
 ## Questions
 
