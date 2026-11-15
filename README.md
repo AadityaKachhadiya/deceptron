@@ -61,12 +61,16 @@ figures](reproduce/README.md#figures).
 
 ## Benchmark figures
 
-![Navier–Stokes recovery from one noisy snapshot and absolute error at the withheld time](examples/assets/navier_stokes_withheld_t2.png)
+<p align="center">
+  <img src="examples/assets/navier_stokes_withheld_t2.png" width="620" alt="Navier–Stokes recovery from one noisy snapshot and absolute error at the withheld time">
+</p>
 
 **Navier–Stokes.** Recover the initial vorticity from one noisy snapshot
 and compare the resulting flow with the withheld snapshot. [Run and data](reproduce/README.md#navierstokes-with-a-withheld-observation)
 
-![Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves](examples/assets/allen_cahn_break_even.png)
+<p align="center">
+  <img src="examples/assets/allen_cahn_break_even.png" width="560" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
+</p>
 
 **Allen–Cahn.** Projected cumulative time at a common measurement
 tolerance, including Deceptron training cost. [Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization)
