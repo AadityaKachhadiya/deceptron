@@ -33,10 +33,8 @@ result = DIPG(model, torch.tensor([0.8]), torch.zeros(1), SolverConfig(tolerance
 print(result["x_hat"])  # approximately tensor([0.4000])
 ```
 
-The [quick-start notebook](examples/quickstart.ipynb) trains a reverse map
-for a custom measurement equation and displays a pretrained Heat-3D
-recovery. The [user guide](docs/user_guide.md#training-with-your-own-data)
-shows how to train with your own data.
+- [Run the quick-start notebook](examples/quickstart.ipynb) to train a reverse map for a custom measurement equation and display a pretrained Heat-3D recovery.
+- [Train on your own data](docs/user_guide.md#training-with-your-own-data) using your forward model or paired states and measurements.
 
 ## Reproduce the paper
 
@@ -53,11 +51,12 @@ python reproduce/experiments/heat3d.py
 ```
 
 The script generates the data, trains the models, and writes
-`runs/heat3d/heat3d_cnn_main_results.csv`. See the guide for GPU setup and
-the [archived result](reproduce/results/heat3d_cnn_main_results.csv).
-The guide also gives commands to [replay the Allen–Cahn and Navier–Stokes
-comparisons](reproduce/README.md#checkpoint-replay) and [generate the
-figures](reproduce/README.md#figures).
+`runs/heat3d/heat3d_cnn_main_results.csv` for comparison with the
+[archived result](reproduce/results/heat3d_cnn_main_results.csv).
+
+- [Retrain another benchmark](reproduce/README.md#pde-inverse-problems) from the seven-PDE experiment table.
+- [Replay a paper result](reproduce/README.md#checkpoint-replay) using the Allen–Cahn or Navier–Stokes checkpoints and test data.
+- [Regenerate the figures](reproduce/README.md#figures) from the archived evaluation traces.
 
 ## Benchmark figures
 
