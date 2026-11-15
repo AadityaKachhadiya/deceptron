@@ -84,7 +84,7 @@ tolerance for D-IPG and Levenberg–Marquardt. Under that protocol, the
 projected break-even point is **628 solves**.
 
 <p align="center">
-  <img src="examples/assets/allen_cahn_break_even.png" width="560" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
+  <img src="examples/assets/allen_cahn_break_even.png" width="350" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
 </p>
 
 [Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization).
