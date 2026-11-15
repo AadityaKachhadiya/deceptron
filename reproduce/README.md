@@ -23,18 +23,19 @@ and evaluates the solvers on 80 held-out cases.
 python reproduce/experiments/heat3d.py
 ```
 
-Noise levels are Gaussian standard deviations before observation
-normalization. Grid sizes refer to the fields recovered by inversion.
+Each benchmark recovers an initial field on the listed grid. Darcy
+recovers permeability. Noise is the Gaussian standard deviation before
+observation normalization.
 
-| Benchmark and grid | Inverse problem | Noise SD | Files |
-| --- | --- | ---: | --- |
-| Heat-1D (64) | Initial temperature from a mixed, nonlinear readout at `T = 0.08` | 0.01 | [Script](experiments/heat1d.py) · [Notebook](notebooks/Heat1D.ipynb) · [Results](results/heat1d_main_results.csv) |
-| Heat-2D (16²) | Initial temperature from a blurred field with nonlinear readout at `T = 0.016` | 0.002 | [Script](experiments/heat2d.py) · [Notebook](notebooks/Heat2D.ipynb) · [Results](results/heat2d_cnn_main_results.csv) |
-| Heat-3D (8³) | Initial temperature from a blurred field with nonlinear readout at `T = 0.012` | 0.0015 | [Script](experiments/heat3d.py) · [Notebook](notebooks/Heat3D.ipynb) · [Results](results/heat3d_cnn_main_results.csv) |
-| Advection–diffusion (32²) | Initial scalar field from a blurred and downsampled field at `T = 0.28` | 0.01 | [Script](experiments/advection_diffusion.py) · [Notebook](notebooks/Advection_diffusion.ipynb) · [Results](results/advdiff_degraded_main_results.csv) |
-| Allen–Cahn (32²) | Initial phase field from the phase field at `T = 0.12` | 0.002 | [Script](experiments/allen_cahn.py) · [Notebook](notebooks/AllenCahn2D.ipynb) · [Results](results/allen_cahn2d_main_results.csv) |
-| Darcy (16²) | Permeability from pressure fields for four prescribed sources | 0.0015 | [Script](experiments/darcy.py) · [Notebook](notebooks/Darcy2D.ipynb) · [Results](results/darcy_multisource_main_results.csv) |
-| Navier–Stokes (48²) | Initial vorticity from snapshots at `t = 1` and `t = 2` | 0.003 | [Script](experiments/navier_stokes.py) · [Notebook](notebooks/NavierStokes2D.ipynb) · [Results](results/navier_stokes_main_results.csv) |
+| Benchmark | Grid | Observations | Noise | Code | Notebook | Results |
+| --- | ---: | --- | ---: | --- | --- | --- |
+| Heat-1D | 64 | Mixed nonlinear readout, *t*&nbsp;=&nbsp;0.08 | 0.01 | [Script](experiments/heat1d.py) | [Open](notebooks/Heat1D.ipynb) | [CSV](results/heat1d_main_results.csv) |
+| Heat-2D | 16² | Blurred nonlinear readout, *t*&nbsp;=&nbsp;0.016 | 0.002 | [Script](experiments/heat2d.py) | [Open](notebooks/Heat2D.ipynb) | [CSV](results/heat2d_cnn_main_results.csv) |
+| Heat-3D | 8³ | Blurred nonlinear readout, *t*&nbsp;=&nbsp;0.012 | 0.0015 | [Script](experiments/heat3d.py) | [Open](notebooks/Heat3D.ipynb) | [CSV](results/heat3d_cnn_main_results.csv) |
+| Advection–diffusion | 32² | Blurred, downsampled field, *t*&nbsp;=&nbsp;0.28 | 0.01 | [Script](experiments/advection_diffusion.py) | [Open](notebooks/Advection_diffusion.ipynb) | [CSV](results/advdiff_degraded_main_results.csv) |
+| Allen–Cahn | 32² | Phase field, *t*&nbsp;=&nbsp;0.12 | 0.002 | [Script](experiments/allen_cahn.py) | [Open](notebooks/AllenCahn2D.ipynb) | [CSV](results/allen_cahn2d_main_results.csv) |
+| Darcy | 16² | Pressure fields from four sources | 0.0015 | [Script](experiments/darcy.py) | [Open](notebooks/Darcy2D.ipynb) | [CSV](results/darcy_multisource_main_results.csv) |
+| Navier–Stokes | 48² | Vorticity at *t*&nbsp;=&nbsp;1 and 2 | 0.003 | [Script](experiments/navier_stokes.py) | [Open](notebooks/NavierStokes2D.ipynb) | [CSV](results/navier_stokes_main_results.csv) |
 
 Scripts use the original seed-7 settings and write CSVs, training
 histories, and checkpoints under `runs/<script name>/`. Use
