@@ -68,12 +68,27 @@ figures](reproduce/README.md#figures).
 **Navier–Stokes.** Recover the initial vorticity from one noisy snapshot
 and compare the resulting flow with the withheld snapshot. [Run and data](reproduce/README.md#navierstokes-with-a-withheld-observation)
 
+## Training cost and break-even
+
+The table gives the approximate number of inverse solves needed to offset
+the full Deceptron training cost using the original benchmark timings.
+The estimate depends on the benchmark and the baseline solver.
+
+| Benchmark | Gauss–Newton | Levenberg–Marquardt | L-BFGS |
+| --- | ---: | ---: | ---: |
+| Heat-3D | 1,266 | 1,597 | — |
+| Advection–diffusion 2D | 546 | 550 | 1,692 |
+| Allen–Cahn 2D | 586 | 139 | 6,049 |
+
+The separate Allen–Cahn comparison below uses a shared measurement
+tolerance for D-IPG and Levenberg–Marquardt. Under that protocol, the
+projected break-even point is **628 solves**.
+
 <p align="center">
   <img src="examples/assets/allen_cahn_break_even.png" width="560" alt="Cumulative wall-clock time for Allen–Cahn, with a break-even point at 628 solves">
 </p>
 
-**Allen–Cahn.** Projected cumulative time at a common measurement
-tolerance, including Deceptron training cost. [Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization)
+[Run and timing protocol](reproduce/README.md#matched-target-allencahn-and-amortization).
 
 ## Cite this work
 
