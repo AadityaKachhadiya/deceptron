@@ -7,7 +7,7 @@
 
 Deceptron is a PyTorch package for solving repeated nonlinear inverse problems with a learned reverse map.
 
-[A. L. Kachhadiya. Local Inverse Geometry Can Be Amortized. *arXiv preprint* arXiv:2605.13068, 2026](https://doi.org/10.48550/arXiv.2605.13068).
+[A. L. Kachhadiya. Local Inverse Geometry Can Be Amortized. arXiv:2605.13068, 2026](https://doi.org/10.48550/arXiv.2605.13068).
 
 ## System requirements
 
