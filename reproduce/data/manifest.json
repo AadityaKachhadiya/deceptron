@@ -1,0 +1,330 @@
+{
+  "heat1d_dataset_seed7_test.npz": {
+    "source": "heat1d_dataset_seed7.pt",
+    "source_sha256": "2b75832a48ade956e9902547052314d760761411943ab7ad1fc9156bc1bf0b1e",
+    "seed": 7,
+    "test_cases": 300,
+    "arrays": {
+      "x_test": [
+        300,
+        64
+      ],
+      "y_clean_test": [
+        300,
+        64
+      ],
+      "y_noisy_test": [
+        300,
+        64
+      ],
+      "y_clean_test_norm": [
+        300,
+        64
+      ],
+      "y_noisy_test_norm": [
+        300,
+        64
+      ],
+      "y_mean": [
+        1,
+        64
+      ],
+      "y_std": [
+        1,
+        64
+      ]
+    },
+    "sha256": "e2e2a7ed74fae195b9ed50838f6f4721b9565477654360a15dd46fe638521fe8"
+  },
+  "heat2d_dataset_seed7_test.npz": {
+    "source": "heat2d_dataset_seed7.pt",
+    "source_sha256": "2780463814313123d2e1d8c49631fa3c689eb7d104eb3b92656d209936cec977",
+    "seed": 7,
+    "test_cases": 100,
+    "arrays": {
+      "x_test": [
+        100,
+        256
+      ],
+      "y_clean_test": [
+        100,
+        256
+      ],
+      "y_noisy_test": [
+        100,
+        256
+      ],
+      "y_clean_test_norm": [
+        100,
+        256
+      ],
+      "y_noisy_test_norm": [
+        100,
+        256
+      ],
+      "y_mean": [
+        1,
+        256
+      ],
+      "y_std": [
+        1,
+        256
+      ]
+    },
+    "sha256": "34de50bb520ef0cef98e3e779764692df8c4688400902f2c0c147133c19810bc"
+  },
+  "heat3d_dataset_seed7_test.npz": {
+    "source": "heat3d_dataset_seed7.pt",
+    "source_sha256": "1d68d41f88e033fe481233f4b41b46b59ea70a07d910e8aad84d34ea33518848",
+    "seed": 7,
+    "test_cases": 80,
+    "arrays": {
+      "x_test": [
+        80,
+        512
+      ],
+      "y_clean_test": [
+        80,
+        512
+      ],
+      "y_noisy_test": [
+        80,
+        512
+      ],
+      "y_clean_test_norm": [
+        80,
+        512
+      ],
+      "y_noisy_test_norm": [
+        80,
+        512
+      ],
+      "y_mean": [
+        1,
+        512
+      ],
+      "y_std": [
+        1,
+        512
+      ]
+    },
+    "sha256": "b4d0a64081b975611e703b4eb150a1a393aca9b61b9c19e0960c46086335166f"
+  },
+  "advdiff2d_dataset_seed7_test.npz": {
+    "source": "advdiff2d_dataset_seed7.pt",
+    "source_sha256": "de119f358e1dd7b1ff3fcc27602f9a18f99661d08447be9d90cc512cdc25d7c1",
+    "seed": 7,
+    "test_cases": 80,
+    "arrays": {
+      "x_test": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_clean_test": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_test_norm": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_mean": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "y_std": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "sha256": "4da6d984dd5f2420e6b8fa2a237c15aa4561b01038ba9fa28ff1fcaee45dc713"
+  },
+  "allen_cahn2d_dataset_seed7_test.npz": {
+    "source": "allen_cahn2d_dataset_seed7.pt",
+    "source_sha256": "143841cd3d8c051597a6a08425b902af9eee69de5b440debb977b76e81e7a475",
+    "seed": 7,
+    "test_cases": 80,
+    "arrays": {
+      "x_test": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_clean_test": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_noisy_test": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_clean_test_norm": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_noisy_test_norm": [
+        80,
+        1,
+        32,
+        32
+      ],
+      "y_mean": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "y_std": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "sha256": "a7eaede2f35481ae3e97f4be7ad092f026d08c0e6b4cfb071635e143ce5dce2f"
+  },
+  "darcy2d_dataset_seed7_test.npz": {
+    "source": "darcy2d_dataset_seed7.pt",
+    "source_sha256": "7f0ca6b3194aecaace100a153f681eb4004973cedef9f1a6353191f0f203b4b3",
+    "seed": 7,
+    "test_cases": 80,
+    "arrays": {
+      "x_test": [
+        80,
+        1,
+        16,
+        16
+      ],
+      "y_clean_test": [
+        80,
+        4,
+        16,
+        16
+      ],
+      "y_noisy_test": [
+        80,
+        4,
+        16,
+        16
+      ],
+      "y_clean_test_norm": [
+        80,
+        4,
+        16,
+        16
+      ],
+      "y_noisy_test_norm": [
+        80,
+        4,
+        16,
+        16
+      ],
+      "y_mean": [
+        1,
+        4,
+        1,
+        1
+      ],
+      "y_std": [
+        1,
+        4,
+        1,
+        1
+      ]
+    },
+    "sha256": "1f8b5d1506d6075a664dce6f787e208f9e010709f69f07c0eac171f780b95e34"
+  },
+  "navier_stokes_dataset_1600_200_80_test.npz": {
+    "source": "navier_stokes_dataset_1600_200_80.pt",
+    "source_sha256": "286c9bf2c6145f928c69c71e8b9f3bc64bd3433c019d27e7d8fc61ecb73e8d3c",
+    "seed": 7,
+    "test_cases": 80,
+    "arrays": {
+      "x_test": [
+        80,
+        1,
+        48,
+        48
+      ],
+      "y_clean_test": [
+        80,
+        2,
+        48,
+        48
+      ],
+      "y_noisy_test": [
+        80,
+        2,
+        48,
+        48
+      ],
+      "y_clean_test_norm": [
+        80,
+        2,
+        48,
+        48
+      ],
+      "y_noisy_test_norm": [
+        80,
+        2,
+        48,
+        48
+      ],
+      "y_mean": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "y_std": [
+        1,
+        2,
+        1,
+        1
+      ]
+    },
+    "sha256": "15e35008c337701a27a66240be7f31e2116b5ef6f90c275ef81b774665d2775c"
+  },
+  "checkpoints/navier_stokes_model_plus_jcp.pt": {
+    "source": "navier_stokes_model_plus_jcp.pt",
+    "source_sha256": "bbc8e0dbd22b5c6b4cdf303f71b15e2afe54da818b3e0e0319e0c5d73899a403",
+    "sha256": "bbc8e0dbd22b5c6b4cdf303f71b15e2afe54da818b3e0e0319e0c5d73899a403"
+  },
+  "checkpoints/navier_stokes_model_minus_jcp.pt": {
+    "source": "navier_stokes_model_minus_jcp.pt",
+    "source_sha256": "c61a5a4e6f2a564266dbb9c08a909dadfe02c8e99ba1d900e1a3cb0319ec689f",
+    "sha256": "c61a5a4e6f2a564266dbb9c08a909dadfe02c8e99ba1d900e1a3cb0319ec689f"
+  },
+  "checkpoints/ns_fno_w24_m4_seed7.pt": {
+    "source": "ns_fno_w24_m4_seed7.pt",
+    "source_sha256": "1bc4de2a80f30026f9539b86794a9a1724a30542d0ceac9cb90cc4cdf5e096e0",
+    "sha256": "1bc4de2a80f30026f9539b86794a9a1724a30542d0ceac9cb90cc4cdf5e096e0"
+  },
+  "checkpoints/allen_cahn2d_model_plus_jcp.pt": {
+    "source": "allen_cahn2d_model_plus_jcp.pt",
+    "source_sha256": "9875b6dbf56bcf379178ffbac67f666f801f3aeeba86aaaa62c8cfb2144283c8",
+    "sha256": "9875b6dbf56bcf379178ffbac67f666f801f3aeeba86aaaa62c8cfb2144283c8"
+  },
+  "allen_cahn2d_run_metadata_seed7.json": {
+    "source": "allen_cahn2d_run_metadata_seed7.json",
+    "source_sha256": "d83cc51c50f13cf39ea85b9ac29bfa6ff32e58d55fc2b716514dc0c651bf7cc7",
+    "sha256": "e98b17a636fac5876c44b1414e7421f4338e53f79cc0d10a91c126241efa9281"
+  }
+}

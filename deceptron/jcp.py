@@ -14,6 +14,8 @@ a better inverse of f around the sampled inputs.
 import torch
 from torch.func import jvp
 
+from .models import _model_device
+
 
 def single_sample_probe_jcp(
     model,
@@ -55,7 +57,7 @@ def single_sample_probe_jcp(
         return model.g(inp.unsqueeze(0)).squeeze(0)
 
     for _ in range(num_probes):
-        xi = torch.empty(dim, device=x.device).bernoulli_(0.5).mul_(2.0).sub_(1.0)
+        xi = torch.empty(dim, device=x.device, dtype=x.dtype).bernoulli_(0.5).mul_(2.0).sub_(1.0)
         y  = f_single(x)
         _, jf_xi    = jvp(f_single, (x,), (xi,))
         _, jg_jf_xi = jvp(g_single, (y,), (jf_xi,))
@@ -131,7 +133,7 @@ def estimate_rjcp_dataset(
         Mean RJCP estimate over the selected samples.
     """
     model.eval()
-    device = next(model.parameters()).device
+    device = _model_device(model, x_data.device)
     x_sub  = x_data[:max_samples].to(device)
     values = [
         single_sample_probe_jcp(model, x_sub[i], num_probes=num_probes).detach().cpu()
