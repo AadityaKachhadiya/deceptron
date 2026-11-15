@@ -157,17 +157,14 @@ while avoiding a new Jacobian-based linear solve at every iteration.
 
 ## Why this is useful
 
-Deceptron lets you train a reverse map for a forward model and reuse it
-as new measurements arrive. During each solve, D-IPG uses the reverse
-map to propose state updates and evaluates them against the measurement
-misfit. Training moves part of the computational cost up front, so its
-benefit depends on how often the model is reused and how much time each
-solve saves.
+D-IPG is intended for amortized inverse-problem regimes where:
 
-The package provides forward and reverse models, JCP training utilities,
-RJCP diagnostics, and D-IPG. It also includes gradient descent,
-Gauss–Newton, and Levenberg–Marquardt solvers. Selected benchmark scripts
-use PyTorch's L-BFGS optimizer.
+- many inverse solves share the same forward family,
+- classical Gauss-Newton or Levenberg-Marquardt solves are expensive,
+- first-order methods are cheap but unreliable or slow,
+- a learned reverse operator can be trained once and reused.
+
+In this setting, Deceptron shifts part of the cost from repeated inference-time linear solves into one-time training of local inverse geometry.
 
 ---
 
