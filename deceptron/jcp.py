@@ -105,7 +105,7 @@ def batch_probe_jcp(
 def estimate_rjcp_dataset(
     model,
     x_data: torch.Tensor,
-    num_probes: int = 4,
+    num_probes : int, default=4,
     max_samples: int = 64,
 ) -> float:
     """
