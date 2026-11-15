@@ -1,0 +1,2 @@
+dataset,checkpoint_training_observation,deployment_observation,missing_channel,direct_missing_input_treatment,dipg_missing_input_treatment,fno_retrained_for_missingness,dipg_alpha0,dipg_budget,dipg_rho,armijo_c,max_backtracking_steps,test_cases
+Navier-Stokes-2D seed 7,full t1+t2 observations,t1 only,t2,"f_t2(x0), x0=0","f_t2(x_t), recomputed each iteration",False,1.6,16,0.4,0.0001,8,80
