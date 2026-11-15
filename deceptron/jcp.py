@@ -105,7 +105,7 @@ def batch_probe_jcp(
 def estimate_rjcp_dataset(
     model,
     x_data: torch.Tensor,
-    num_probes : int, default=4,
+    num_probes: int = 4,
     max_samples: int = 64,
 ) -> float:
     """
@@ -122,7 +122,7 @@ def estimate_rjcp_dataset(
         Module exposing ``model.f`` and ``model.g``.
     x_data : torch.Tensor
         Input samples used for the diagnostic.
-    num_probes : int, default=2
+    num_probes : int, default=4
         Number of random probes per sample.
     max_samples : int, default=64
         Maximum number of samples used from ``x_data``.
