@@ -1,7 +1,7 @@
 # Deceptron
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AadityaKachhadiya/deceptron/blob/main/examples/quickstart.ipynb)
-[Documentation](https://deceptron.readthedocs.io/en/latest/)
+[![Documentation](https://app.readthedocs.org/projects/deceptron/badge/?version=latest)](https://deceptron.readthedocs.io/en/latest/)
 [![Python 3.9 or later](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](#system-requirements)
 [![PyTorch 2.0 or later](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](#system-requirements)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
