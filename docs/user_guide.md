@@ -20,7 +20,9 @@ python examples/heat3d_quickstart.py
 The script recovers an initial temperature field for one held-out case
 and saves `heat3d_recovery.png`. The expected state RMSE is 0.06308.
 
-![Noisy observation, D-IPG recovery, and true initial field for one Heat-3D case](../examples/assets/heat3d_preview.png)
+<p align="center">
+  <img src="../examples/assets/heat3d_preview.png" width="600" alt="Noisy observation, D-IPG recovery, and true initial field for one Heat-3D case">
+</p>
 
 To run the example and display the generated figure in a single Colab
 cell, open the cloned repository with `%cd /content/deceptron`, then run:
@@ -35,6 +37,13 @@ display(Image(filename="heat3d_recovery.png"))
 ```
 
 ## Core idea
+
+<p align="center">
+  <a href="../examples/assets/deceptron_schematic.png"><img src="../examples/assets/deceptron_schematic.png" width="720" alt="Deceptron forward and reverse maps, Jacobian composition training, and D-IPG inference"></a>
+</p>
+
+The schematic shows reverse-map training with a frozen forward surrogate
+and D-IPG recovery with both maps frozen.
 
 Consider a differentiable forward surrogate
 
@@ -136,7 +145,7 @@ Thus $J\_g\(f\_W\(x\_t\)\)$ acts as an amortized inverse-preconditioner. If
 J_g(f_W(x_t))\approx J_f(x_t)^+,
 ```
 
-then D-IPG approximates a damped Gauss--Newton step
+then D-IPG approximates a step-scaled Gauss–Newton proposal
 
 ```math
 x_t-\alpha_t J_f(x_t)^+r_t,
@@ -148,22 +157,17 @@ while avoiding a new Jacobian-based linear solve at every iteration.
 
 ## Why this is useful
 
-D-IPG is intended for amortized inverse-problem regimes where:
+Deceptron lets you train a reverse map for a forward model and reuse it
+as new measurements arrive. During each solve, D-IPG uses the reverse
+map to propose state updates and evaluates them against the measurement
+misfit. Training moves part of the computational cost up front, so its
+benefit depends on how often the model is reused and how much time each
+solve saves.
 
-- many inverse solves share the same forward family,
-- classical Gauss-Newton or Levenberg-Marquardt solves are expensive,
-- first-order methods are cheap but unreliable or slow,
-- a learned reverse operator can be trained once and reused.
-
-In this setting, Deceptron shifts part of the cost from repeated inference-time linear solves into one-time training of local inverse geometry.
-
-The package includes:
-
-- learned forward-reverse Deceptron modules,
-- JCP training utilities,
-- RJCP diagnostics for runtime inverse-consistency measurement,
-- D-IPG inference solver,
-- classical inverse-solver baselines such as GD, GN, LM, and L-BFGS-style comparisons in benchmark scripts.
+The package provides forward and reverse models, JCP training utilities,
+RJCP diagnostics, and D-IPG. It also includes gradient descent,
+Gauss–Newton, and Levenberg–Marquardt solvers. Selected benchmark scripts
+use PyTorch's L-BFGS optimizer.
 
 ---
 
