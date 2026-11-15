@@ -39,8 +39,12 @@ observation normalization.
 
 Scripts use the original seed-7 settings and write CSVs, training
 histories, and checkpoints under `runs/<script name>/`. Use
-`--output-dir` with a new path to repeat a run. The notebooks contain the
-original experiment code, extended plots, and seed sweeps.
+`--output-dir` with a new path to repeat a run.
+
+The notebooks contain the original experiment code, extended plots, and
+seed sweeps. The advection–diffusion, Allen–Cahn, Darcy, and Navier–Stokes
+notebooks use Colab's `/content/` directory. For a local run, follow the
+Python script commands above.
 
 A fresh Colab run of advection–diffusion reproduced 80/80 successes for
 D-IPG (+JCP), with mean state RMSE 0.0560. Fresh full-budget GPU runs of
