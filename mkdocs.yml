@@ -1,0 +1,28 @@
+site_name: Deceptron
+site_description: Learned local inverse action for repeated nonlinear inverse problems
+repo_url: https://github.com/AadityaKachhadiya/deceptron
+repo_name: AadityaKachhadiya/deceptron
+edit_uri: ""
+theme: mkdocs
+site_dir: build/docs
+use_directory_urls: false
+
+nav:
+  - Quick start: index.md
+  - User guide: user_guide.md
+  - Reproduce the paper: reproduce/README.md
+  - Data and checkpoints: reproduce/data/README.md
+
+hooks:
+  - docs/hooks.py
+exclude_docs: |
+  hooks.py
+  requirements.txt
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js
