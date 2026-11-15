@@ -93,7 +93,7 @@ J_g(f_W(x))J_f(x)-I
 
 without explicitly forming full Jacobian matrices.
 
-When this defect is small, the reverse Jacobian $J\_g\(f\_W\(x\)\)$ acts as a learned local left inverse of $J\_f\(x\)$. In full-column-rank least-squares regimes, this makes the induced D-IPG update locally Gauss-Newton-like.
+When the forward Jacobian has full column rank, the learned reverse Jacobian approximates the Gauss–Newton correction for residuals in the range of the forward Jacobian. Agreement for general residuals also depends on how the reverse Jacobian acts on the component orthogonal to that range.
 
 ---
 
@@ -408,7 +408,7 @@ S1 denotes forward-surrogate training, S2 denotes reverse-map pretraining, and S
 
 All listed runs use Adam with weight decay $10\^\{\-6\}$, reconstruction weight $1\.0$, and task weight $1\.0$. CNN-based benchmarks use cosine learning-rate schedules and gradient clipping. Heat-1D uses MLP-specific stabilization losses rather than the probe-JCP weight used in the CNN-based benchmarks.
 
-### SolverConfig defaults
+### Solver configuration
 
 Representative D-IPG solver parameters:
 
@@ -418,8 +418,8 @@ Representative D-IPG solver parameters:
 | `tolerance_eps` | 0.30 | normalized residual tolerance |
 | `max_iterations` | 80--120 | maximum D-IPG iterations |
 | `armijo_c` | 1e-4 | Armijo sufficient-decrease constant |
-| `relaxation` | 0.4 | relaxation applied before projection |
-| `max_backtracking` | 8 | maximum Armijo backtracking steps |
+| `rho` | 0.4 | relaxation applied before projection |
+| `max_backtracking_steps` | 8 | maximum number of Armijo step-size reductions |
 | `x_low`, `x_high` | task-dependent | box constraints on latent state |
 
 Example:
@@ -430,8 +430,8 @@ solver_cfg = SolverConfig(
     max_iterations=120,
     dipg_step_size=1.0,
     armijo_c=1e-4,
-    relaxation=0.4,
-    max_backtracking=8,
+    rho=0.4,
+    max_backtracking_steps=8,
     x_low=0.0,
     x_high=1.0,
 )
