@@ -8,8 +8,15 @@ Composition Penalty (JCP).
 
 ## Installation
 
-The package requires Python 3.9 or later, PyTorch 2.0 or later, and
-NumPy 1.24 or later. Install from GitHub with Git and pip.
+Deceptron requires Python 3.9 or later, PyTorch 2.0 or later, and NumPy 1.24 or later.
+
+Install the latest release from PyPI.
+
+```bash
+python -m pip install deceptron
+```
+
+To install the latest code from the GitHub `main` branch, use the following command. This option requires Git.
 
 ```bash
 python -m pip install git+https://github.com/AadityaKachhadiya/deceptron.git
