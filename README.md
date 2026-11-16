@@ -18,6 +18,14 @@ Deceptron is a PyTorch package for solving repeated nonlinear inverse problems w
 
 ## Installation
 
+Install the latest release from PyPI.
+
+```bash
+python -m pip install deceptron
+```
+
+To install the latest code from the GitHub `main` branch, run:
+
 ```bash
 python -m pip install git+https://github.com/AadityaKachhadiya/deceptron.git
 ```
